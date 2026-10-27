@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#b5121b">
+  <meta name="description" content="مطعم العمدة — تصفح المنيو الإلكتروني وتواصل معنا عبر واتساب. مكة المكرمة، العزيزية، شارع عبدالله الخياط.">
+  <title>مطعم العمدة | الطعم اللي يجمعنا</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--red:#b5121b;--red2:#e1262f;--gold:#f5c542;--ink:#171717;--muted:#6b6b6b;--cream:#fffaf0;--white:#fff}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.8}
+    a{color:inherit;text-decoration:none}
+    .topbar{background:var(--ink);color:#fff;font-size:.88rem;padding:8px 5%;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .topbar span{display:inline-flex;align-items:center;gap:7px}
+    header{position:sticky;top:0;z-index:10;background:rgba(255,250,240,.95);backdrop-filter:blur(12px);border-bottom:1px solid #eadfce}
+    .nav{max-width:1160px;margin:auto;padding:12px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:900;font-size:1.2rem}
+    .brand img{width:62px;height:54px;object-fit:contain;border-radius:10px;background:#fff}
+    .brand span{color:var(--red)}
+    .navlinks{display:flex;gap:22px;align-items:center;font-weight:700;font-size:.94rem}
+    .navlinks a:hover{color:var(--red)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:999px;padding:13px 23px;font-family:inherit;font-weight:800;cursor:pointer;transition:transform .2s,box-shadow .2s,background .2s}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px #0002}
+    .btn-red{background:var(--red);color:#fff}
+    .btn-gold{background:var(--gold);color:#211700}
+    .btn-outline{border:1px solid #ffffff80;color:#fff;background:transparent}
+    .hero{position:relative;overflow:hidden;background:radial-gradient(circle at 15% 15%,#e1262f 0,transparent 32%),linear-gradient(125deg,#171717 0%,#29201d 52%,#751017 100%);color:#fff}
+    .hero:after{content:"";position:absolute;width:420px;height:420px;border:1px solid #f5c54255;border-radius:50%;left:-100px;bottom:-250px;box-shadow:0 0 0 35px #f5c5420b,0 0 0 75px #f5c5420b}
+    .hero-inner{max-width:1160px;margin:auto;padding:74px 22px 82px;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:42px;position:relative;z-index:1}
+    .eyebrow{color:var(--gold);font-weight:800;letter-spacing:.4px}
+    h1{font-size:clamp(2.35rem,5vw,4.6rem);line-height:1.25;margin:12px 0 18px;font-weight:900}
+    h1 em{font-style:normal;color:var(--gold)}
+    .hero p{font-size:1.12rem;color:#f3e8e4;max-width:600px;margin:0 0 28px}
+    .actions{display:flex;gap:12px;flex-wrap:wrap}
+    .logo-panel{display:flex;justify-content:center;align-items:center;min-height:300px}
+    .logo-frame{background:#fff;border:5px solid var(--gold);border-radius:30px;padding:18px;max-width:360px;width:100%;box-shadow:0 24px 65px #0006;transform:rotate(-2deg)}
+    .logo-frame img{display:block;width:100%;max-height:300px;object-fit:contain;border-radius:14px}
+    .trust{background:var(--gold);color:#211700;padding:17px 5%;font-weight:800}
+    .trust-inner{max-width:1050px;margin:auto;display:flex;justify-content:space-around;gap:18px;flex-wrap:wrap}
+    .trust span{display:flex;align-items:center;gap:8px}
+    section{padding:72px 22px}
+    .container{max-width:1100px;margin:auto}
+    .section-head{text-align:center;margin:0 auto 35px;max-width:700px}
+    .section-head .eyebrow{color:var(--red)}
+    h2{font-size:clamp(1.8rem,3.5vw,2.8rem);line-height:1.35;margin:7px 0 12px;font-weight:900}
+    .section-head p{color:var(--muted);margin:0}
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .feature{background:#fff;border:1px solid #f0e6d7;border-radius:22px;padding:28px 22px;text-align:center;box-shadow:0 10px 30px #2a170b08}
+    .feature .icon{font-size:2rem;width:66px;height:66px;display:grid;place-items:center;background:#fff1d0;border-radius:20px;margin:0 auto 14px}
+    .feature h3{margin:0 0 5px;font-size:1.15rem}
+    .feature p{color:var(--muted);margin:0;font-size:.94rem}
+    .menu-band{background:#f3e8d6}
+    .menu-card{display:grid;grid-template-columns:1fr auto;align-items:center;gap:28px;background:#fff;border-radius:28px;padding:clamp(25px,5vw,52px);border:1px solid #eadcc8;box-shadow:0 15px 40px #3a1c0d0b}
+    .menu-card h2{margin-top:0}
+    .menu-card p{color:var(--muted);max-width:620px}
+    .menu-icon{width:130px;height:130px;border-radius:50%;background:#fff1d0;display:grid;place-items:center;font-size:4rem}
+    .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .contact-card{background:#fff;border:1px solid #f0e6d7;border-radius:22px;padding:25px;display:flex;gap:16px;align-items:flex-start}
+    .contact-card .icon{flex:0 0 50px;height:50px;display:grid;place-items:center;background:#fff1d0;border-radius:15px;font-size:1.4rem}
+    .contact-card h3{margin:0 0 4px}
+    .contact-card p{margin:0;color:var(--muted)}
+    .contact-card a{color:var(--red);font-weight:800;overflow-wrap:anywhere}
+    .cta{background:linear-gradient(120deg,var(--red),#7d0c13);color:#fff;text-align:center}
+    .cta p{color:#ffe8e8;margin:0 auto 24px;max-width:650px}
+    footer{background:#171717;color:#ddd;padding:25px 22px;text-align:center}
+    footer strong{color:var(--gold)}
+    .wa-float{position:fixed;bottom:20px;left:20px;z-index:20;background:#20b866;color:#fff;border-radius:999px;padding:13px 18px;font-weight:900;box-shadow:0 8px 24px #0003;display:flex;gap:8px;align-items:center}
+    .wa-float:hover{transform:translateY(-3px)}
+    @media(max-width:760px){.topbar{justify-content:center;text-align:center}.nav{flex-wrap:wrap}.navlinks{order:3;width:100%;justify-content:center;gap:16px;flex-wrap:wrap;font-size:.86rem}.nav>.btn{padding:10px 14px}.hero-inner{grid-template-columns:1fr;text-align:center;padding-top:52px}.hero p{margin-left:auto;margin-right:auto}.actions{justify-content:center}.logo-panel{min-height:0}.logo-frame{max-width:260px}.features{grid-template-columns:1fr}.menu-card{grid-template-columns:1fr;text-align:center}.menu-icon{margin:auto;grid-row:1;width:95px;height:95px;font-size:3rem}.contact-grid{grid-template-columns:1fr}section{padding:55px 18px}.wa-float{left:12px;bottom:12px;padding:11px 14px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span>📍 مكة المكرمة، العزيزية، شارع عبدالله الخياط</span>
+    <span>☎ <a href="tel:+966533849572" dir="ltr">0533849572</a></span>
+  </div>
+  <header>
+    <nav class="nav" aria-label="القائمة الرئيسية">
+      <a class="brand" href="#home"><img src="assets/logo.jpg" alt="شعار مطعم العمدة"><span>مطعم العمدة</span></a>
+      <div class="navlinks">
+        <a href="#home">الرئيسية</a><a href="#about">عن المطعم</a><a href="#menu">المنيو</a><a href="#contact">تواصل معنا</a>
+      </div>
+      <a class="btn btn-red" href="https://alomada.menusplus-qr.com/?branch=alomada" target="_blank" rel="noopener">عرض المنيو ↗</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-inner">
+        <div>
+          <div class="eyebrow">أهلًا بيكم في العمدة</div>
+          <h1>الطعم الأصيل<br><em>يجمعنا على سفرة واحدة</em></h1>
+          <p>اكتشف منيو مطعم العمدة وتصفّح اختياراتك بسهولة. إحنا هنا علشان نخلي الوصول لمنيو المطعم والتواصل معانا أسهل.</p>
+          <div class="actions">
+            <a class="btn btn-gold" href="https://alomada.menusplus-qr.com/?branch=alomada" target="_blank" rel="noopener">🍽️ تصفّح المنيو</a>
+            <a class="btn btn-outline" href="https://wa.me/966533849572" target="_blank" rel="noopener">💬 تواصل عبر واتساب</a>
+          </div>
+        </div>
+        <div class="logo-panel"><div class="logo-frame"><img src="assets/logo.jpg" alt="شعار مطعم العمدة"></div></div>
+      </div>
+    </section>
+
+    <div class="trust"><div class="trust-inner"><span>🍽️ منيو إلكتروني سهل</span><span>📱 تواصل مباشر عبر واتساب</span><span>📍 موقعنا في مكة المكرمة</span></div></div>
+
+    <section id="about">
+      <div class="container">
+        <div class="section-head"><div class="eyebrow">أهلًا وسهلًا</div><h2>العمدة… اختيارك على ذوقك</h2><p>كل اللي تحتاجه للوصول إلى منيو مطعم العمدة والتواصل معانا، في مكان واحد وبخطوات بسيطة.</p></div>
+        <div class="features">
+          <article class="feature"><div class="icon">📋</div><h3>منيو في ضغطة</h3><p>افتح المنيو الإلكتروني وتعرّف على الأصناف المتاحة من خلال الرابط الرسمي.</p></article>
+          <article class="feature"><div class="icon">💬</div><h3>تواصل بسهولة</h3><p>راسلنا على واتساب أو اتصل بنا مباشرة للاستفسارات.</p></article>
+          <article class="feature"><div class="icon">📍</div><h3>زورونا في مكة</h3><p>العزيزية، شارع عبدالله الخياط، مكة المكرمة.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="menu-band" id="menu">
+      <div class="container">
+        <div class="menu-card">
+          <div><div class="eyebrow">اختار اللي على مزاجك</div><h2>منيو مطعم العمدة</h2><p>اضغط على الزر لفتح المنيو الإلكتروني الكامل. هتنتقل إلى صفحة المنيو الخارجية الخاصة بالمطعم.</p><a class="btn btn-red" href="https://alomada.menusplus-qr.com/?branch=alomada" target="_blank" rel="noopener">افتح المنيو الكامل ↗</a></div>
+          <div class="menu-icon" aria-hidden="true">🍽️</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="container">
+        <div class="section-head"><div class="eyebrow">يسعدنا تواصلكم</div><h2>تواصل معنا</h2><p>للاستفسارات، تقدر تتواصل معنا بالهاتف أو واتساب، أو تزورنا في عنواننا.</p></div>
+        <div class="contact-grid">
+          <div class="contact-card"><div class="icon">📞</div><div><h3>اتصل بنا</h3><p><a href="tel:+966533849572" dir="ltr">0533849572</a></p></div></div>
+          <div class="contact-card"><div class="icon">💬</div><div><h3>واتساب</h3><p><a href="https://wa.me/966533849572" target="_blank" rel="noopener" dir="ltr">0533849572 — ابدأ محادثة</a></p></div></div>
+          <div class="contact-card"><div class="icon">📍</div><div><h3>عنوان المطعم</h3><p>مكة المكرمة، العزيزية، شارع عبدالله الخياط</p><a href="https://www.google.com/maps/search/?api=1&query=مطعم+العمدة+العزيزية+شارع+عبدالله+الخياط+مكة" target="_blank" rel="noopener">افتح الموقع على خرائط Google ↗</a></div></div>
+          <div class="contact-card"><div class="icon">🍴</div><div><h3>المنيو الإلكتروني</h3><p>تصفح قائمة الطعام من خلال الرابط الرسمي.</p><a href="https://alomada.menusplus-qr.com/?branch=alomada" target="_blank" rel="noopener">عرض المنيو ↗</a></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="container"><h2>جاهز تتصفح المنيو؟</h2><p>منيو مطعم العمدة على بُعد ضغطة واحدة.</p><div class="actions" style="justify-content:center"><a class="btn btn-gold" href="https://alomada.menusplus-qr.com/?branch=alomada" target="_blank" rel="noopener">عرض المنيو</a><a class="btn btn-outline" href="https://wa.me/966533849572" target="_blank" rel="noopener">تواصل عبر واتساب</a></div></div>
+    </section>
+  </main>
+  <a class="wa-float" href="https://wa.me/966533849572" target="_blank" rel="noopener" aria-label="تواصل مع مطعم العمدة عبر واتساب">💬 واتساب</a>
+  <footer><div>© <span id="year">2026</span> <strong>مطعم العمدة</strong> — جميع الحقوق محفوظة</div></footer>
+</body>
+</html>
