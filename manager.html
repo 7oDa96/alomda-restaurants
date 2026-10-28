@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -8,109 +7,45 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; }
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f3ef;
-      margin: 0;
-      color: #29251f;
-    }
-    header {
-      background: #633b20;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-    main {
-      max-width: 1100px;
-      margin: 20px auto;
-      padding: 14px;
-    }
-    .card {
-      background: white;
-      padding: 18px;
-      border-radius: 12px;
-      margin-bottom: 18px;
-      box-shadow: 0 2px 8px #00000010;
-    }
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin: 6px 0;
-      border-radius: 7px;
-      font-size: 16px;
-    }
+    body { font-family: Arial, sans-serif; background: #f5f3ef; margin: 0; color: #29251f; }
+    header { background: #633b20; color: white; padding: 20px; text-align: center; }
+    main { max-width: 1100px; margin: 20px auto; padding: 14px; }
+    .card { background: white; padding: 18px; border-radius: 12px; margin-bottom: 18px; box-shadow: 0 2px 8px #00000010; }
+    input, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 7px; font-size: 16px; }
     input { border: 1px solid #ccc; }
-    button {
-      background: #633b20;
-      color: white;
-      border: 0;
-      cursor: pointer;
-    }
+    button { background: #633b20; color: white; border: 0; cursor: pointer; }
     button:disabled { opacity: .6; cursor: wait; }
-    .secondary { background: #75695e; }
-    .danger { background: #a12f2f; }
-    .success { background: #28734a; }
-    .hidden { display: none !important; }
-    .muted { color: #6b625a; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 10px;
-    }
-    .tabs {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 8px;
-      margin-bottom: 14px;
-    }
+    .secondary { background: #75695e; } .danger { background: #a12f2f; } .success { background: #28734a; }
+    .hidden { display: none !important; } .muted { color: #6b625a; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+    .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 14px; }
     .tabs button { margin: 0; }
-    .order, .menu-item {
-      border: 1px solid #e7e0d8;
-      border-radius: 8px;
-      padding: 13px;
-      margin: 10px 0;
-      overflow-wrap: anywhere;
-    }
+    .order, .menu-item { border: 1px solid #e7e0d8; border-radius: 8px; padding: 13px; margin: 10px 0; overflow-wrap: anywhere; }
     .menu-item h3 { margin-top: 0; }
-    .menu-item .actions {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 8px;
-    }
+    .menu-item .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
     .menu-item .actions button { margin: 0; }
-    .badge {
-      display: inline-block;
-      padding: 5px 9px;
-      border-radius: 20px;
-      background: #e7f4e9;
-      color: #24623b;
-      font-size: 13px;
-    }
+    .badge { display: inline-block; padding: 5px 9px; border-radius: 20px; background: #e7f4e9; color: #24623b; font-size: 13px; }
     .badge.off { background: #f8e8e5; color: #942e24; }
-    #message, #menuMessage { white-space: pre-wrap; }
-    .notice {
-      background: #fff6df;
-      padding: 12px;
-      border-radius: 8px;
-      line-height: 1.7;
-    }
+    #message, #menuMessage, #reportMessage { white-space: pre-wrap; }
+    .notice { background: #fff6df; padding: 12px; border-radius: 8px; line-height: 1.7; }
+    .stat { background: #faf8f5; border: 1px solid #e7e0d8; border-radius: 10px; padding: 15px; }
+    .stat .number { font-size: 24px; font-weight: bold; margin-top: 8px; color: #633b20; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; min-width: 420px; }
+    th, td { border-bottom: 1px solid #e7e0d8; padding: 10px; text-align: right; }
+    th { background: #f5f3ef; }
+    .filter-label { display: block; margin-top: 8px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>مطعم العمدة</h1>
-    <p>لوحة إدارة المطعم</p>
-  </header>
-
+  <header><h1>مطعم العمدة</h1><p>لوحة إدارة المطعم</p></header>
   <main>
     <section class="card" id="loginPanel">
       <h2>تسجيل دخول المدير</h2>
       <p class="muted">استخدم حساب المدير المسجل في النظام.</p>
       <form id="loginForm">
-        <input id="email" type="email" placeholder="البريد الإلكتروني"
-          autocomplete="username" required>
-        <input id="password" type="password" placeholder="كلمة المرور"
-          autocomplete="current-password" required>
+        <input id="email" type="email" placeholder="البريد الإلكتروني" autocomplete="username" required>
+        <input id="password" type="password" placeholder="كلمة المرور" autocomplete="current-password" required>
         <button type="submit">تسجيل الدخول</button>
       </form>
       <p id="loginMessage" role="status"></p>
@@ -119,85 +54,45 @@
     <section class="hidden" id="dashboard">
       <div class="card">
         <h2 id="welcome">لوحة المدير</h2>
-        <button id="logoutBtn" class="secondary" type="button">
-          تسجيل الخروج
-        </button>
+        <button id="logoutBtn" class="secondary" type="button">تسجيل الخروج</button>
         <p id="message" role="status"></p>
       </div>
 
       <div class="tabs">
         <button type="button" data-tab="menuPanel">إدارة المنيو</button>
         <button type="button" data-tab="ordersPanel">الطلبات</button>
+        <button type="button" data-tab="reportsPanel">تقارير المبيعات</button>
       </div>
 
       <section class="card" id="menuPanel">
         <h2>إدارة المنيو</h2>
-        <p class="muted">
-          أضف الأصناف وعدّل بياناتها أو أوقفها مؤقتًا عن البيع.
-        </p>
-        <p class="notice">
-          لا تحذف الأصناف نهائيًا. إيقاف الصنف يحافظ على بياناته.
-          تأكد من الأسعار قبل حفظ أي تعديل.
-        </p>
-
+        <p class="muted">أضف الأصناف وعدّل بياناتها أو أوقفها مؤقتًا عن البيع.</p>
+        <p class="notice">لا تحذف الأصناف نهائيًا. إيقاف الصنف يحافظ على بياناته. تأكد من الأسعار قبل حفظ أي تعديل.</p>
         <form id="menuForm">
           <h3 id="formTitle">إضافة صنف جديد</h3>
           <input type="hidden" id="itemId">
-
           <label for="itemName">اسم الصنف</label>
-          <input id="itemName" maxlength="200"
-            placeholder="مثال: عصير مانجو" required>
-
+          <input id="itemName" maxlength="200" placeholder="مثال: عصير مانجو" required>
           <label for="itemCategory">الفئة</label>
-          <input id="itemCategory" maxlength="120"
-            placeholder="مثال: العصائر" required>
-
+          <input id="itemCategory" maxlength="120" placeholder="مثال: العصائر" required>
           <div class="grid">
-            <div>
-              <label for="itemPrice">السعر الأساسي</label>
-              <input id="itemPrice" type="number" min="0" step="0.01"
-                placeholder="السعر بالريال السعودي" required>
-            </div>
-            <div>
-              <label for="itemMin">أقل سعر (اختياري)</label>
-              <input id="itemMin" type="number" min="0" step="0.01"
-                placeholder="اتركه فارغًا للسعر الثابت">
-            </div>
-            <div>
-              <label for="itemMax">أعلى سعر (اختياري)</label>
-              <input id="itemMax" type="number" min="0" step="0.01"
-                placeholder="اتركه فارغًا للسعر الثابت">
-            </div>
+            <div><label for="itemPrice">السعر الأساسي</label><input id="itemPrice" type="number" min="0" step="0.01" placeholder="السعر بالريال السعودي" required></div>
+            <div><label for="itemMin">أقل سعر (اختياري)</label><input id="itemMin" type="number" min="0" step="0.01" placeholder="اتركه فارغًا للسعر الثابت"></div>
+            <div><label for="itemMax">أعلى سعر (اختياري)</label><input id="itemMax" type="number" min="0" step="0.01" placeholder="اتركه فارغًا للسعر الثابت"></div>
           </div>
-
-          <label>
-            <input id="itemAvailable" type="checkbox" checked
-              style="width:auto;margin-left:8px">
-            الصنف متاح للبيع
-          </label>
-
+          <label><input id="itemAvailable" type="checkbox" checked style="width:auto;margin-left:8px"> الصنف متاح للبيع</label>
           <button id="saveItemBtn" type="submit">حفظ الصنف</button>
-          <button id="cancelEditBtn" type="button"
-            class="secondary hidden">إلغاء التعديل</button>
+          <button id="cancelEditBtn" type="button" class="secondary hidden">إلغاء التعديل</button>
         </form>
-
         <hr>
         <h3>الأصناف المسجلة</h3>
-        <input id="menuSearch" type="search"
-          placeholder="ابحث باسم الصنف أو الفئة">
-
+        <input id="menuSearch" type="search" placeholder="ابحث باسم الصنف أو الفئة">
         <div class="grid">
           <button id="showAllBtn" type="button">كل الأصناف</button>
-          <button id="showAvailableBtn" type="button" class="success">
-            المتاحة فقط
-          </button>
-          <button id="showUnavailableBtn" type="button" class="secondary">
-            غير المتاحة
-          </button>
+          <button id="showAvailableBtn" type="button" class="success">المتاحة فقط</button>
+          <button id="showUnavailableBtn" type="button" class="secondary">غير المتاحة</button>
         </div>
-
-        <p id="menuMessage" role="status"></p>
-        <div id="menuItems"></div>
+        <p id="menuMessage" role="status"></p><div id="menuItems"></div>
       </section>
 
       <section class="card hidden" id="ordersPanel">
@@ -205,412 +100,288 @@
         <button id="refreshBtn" type="button">تحديث الطلبات</button>
         <div id="orders"></div>
       </section>
+
+      <section class="card hidden" id="reportsPanel">
+        <h2>تقارير المبيعات</h2>
+        <p class="notice">التقارير تحسب الطلبات المكتملة فقط، ولا تدخل الطلبات الجديدة أو الجاري تجهيزها أو الملغاة ضمن المبيعات.</p>
+        <div class="grid">
+          <div><label class="filter-label" for="reportStart">من تاريخ</label><input id="reportStart" type="date"></div>
+          <div><label class="filter-label" for="reportEnd">إلى تاريخ</label><input id="reportEnd" type="date"></div>
+        </div>
+        <div class="grid">
+          <button id="todayReportBtn" type="button" class="secondary">مبيعات اليوم</button>
+          <button id="runReportBtn" type="button">عرض التقرير</button>
+        </div>
+        <p id="reportMessage" role="status"></p>
+        <div class="grid">
+          <div class="stat"><div>إجمالي المبيعات المكتملة</div><div id="reportSales" class="number">—</div></div>
+          <div class="stat"><div>عدد الطلبات المكتملة</div><div id="reportCount" class="number">—</div></div>
+          <div class="stat"><div>متوسط قيمة الطلب</div><div id="reportAverage" class="number">—</div></div>
+        </div>
+        <h3>المبيعات حسب الكاشير</h3>
+        <div id="cashierReport" class="table-wrap"></div>
+        <h3>الطلبات المكتملة في الفترة</h3>
+        <div id="completedReportOrders"></div>
+      </section>
     </section>
   </main>
 
   <script>
-    const SUPABASE_URL =
-      'https://gbetyfaobnwoqajjdcls.supabase.co';
-    const SUPABASE_KEY =
-      'sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n';
-
-    const db = window.supabase.createClient(
-      SUPABASE_URL, SUPABASE_KEY
-    );
-
+    const SUPABASE_URL = 'https://gbetyfaobnwoqajjdcls.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const $ = id => document.getElementById(id);
-    let menuData = [];
-    let menuFilter = 'all';
-    let editingItem = null;
+    let menuData = [], menuFilter = 'all', editingItem = null;
 
-    function setText(id, text) {
-      $(id).textContent = text;
-    }
-
+    function setText(id, text) { $(id).textContent = text; }
     function showLogin(text = '') {
-      $('dashboard').classList.add('hidden');
-      $('loginPanel').classList.remove('hidden');
-      setText('loginMessage', text);
+      $('dashboard').classList.add('hidden'); $('loginPanel').classList.remove('hidden'); setText('loginMessage', text);
     }
-
-    function showDashboard() {
-      $('loginPanel').classList.add('hidden');
-      $('dashboard').classList.remove('hidden');
-    }
+    function showDashboard() { $('loginPanel').classList.add('hidden'); $('dashboard').classList.remove('hidden'); }
 
     async function checkManager(user) {
-      const { data, error } = await db
-        .from('staff_profiles')
-        .select('display_name, role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        throw new Error('تعذر التحقق من صلاحية الحساب: ' + error.message);
-      }
-
+      const { data, error } = await db.from('staff_profiles').select('display_name, role').eq('user_id', user.id).maybeSingle();
+      if (error) throw new Error('تعذر التحقق من صلاحية الحساب: ' + error.message);
       if (!data || data.role !== 'manager') {
         await db.auth.signOut();
         throw new Error('هذا الحساب ليس لديه صلاحية مدير.');
       }
-
-      setText('welcome',
-        'أهلًا، ' + (data.display_name || 'مدير المطعم'));
-
+      setText('welcome', 'أهلًا، ' + (data.display_name || 'مدير المطعم'));
       showDashboard();
       await loadOrders();
       await loadMenu();
+      setDefaultReportDates();
+      await loadSalesReport();
+    }
+
+    function money(value) {
+      return Number(value || 0).toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ريال';
+    }
+    function dateLocal(date = new Date()) {
+      const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, '0'), d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    function orderDate(order) {
+      // order_date هو التاريخ اليومي المحفوظ في قاعدة البيانات بتوقيت القاهرة.
+      if (order.order_date) return String(order.order_date).slice(0, 10);
+      if (order.created_at) return dateLocal(new Date(order.created_at));
+      return '';
+    }
+    function setDefaultReportDates() {
+      const today = dateLocal();
+      $('reportStart').value = today;
+      $('reportEnd').value = today;
     }
 
     async function loadOrders() {
-      const box = $('orders');
-      box.replaceChildren();
-      setText('message', 'جارٍ تحميل الطلبات...');
-
-      const { data, error } = await db
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(200);
-
-      if (error) {
-        setText('message', 'تعذر تحميل الطلبات: ' + error.message);
-        return;
-      }
-
+      const box = $('orders'); box.replaceChildren(); setText('message', 'جارٍ تحميل الطلبات...');
+      const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
+      if (error) { setText('message', 'تعذر تحميل الطلبات: ' + error.message); return; }
       setText('message', 'عدد الطلبات المعروضة: ' + data.length);
-
-      if (!data.length) {
-        box.textContent = 'لا توجد طلبات لعرضها.';
-        return;
-      }
-
+      if (!data.length) { box.textContent = 'لا توجد طلبات لعرضها.'; return; }
       data.forEach(order => {
-        const card = document.createElement('article');
-        card.className = 'order';
-
+        const card = document.createElement('article'); card.className = 'order';
         const details = [
           ['h3', 'طلب رقم ' + (order.daily_order_number ?? order.id)],
           ['p', 'العميل: ' + (order.customer_name || 'غير مسجل')],
           ['p', 'الهاتف: ' + (order.customer_phone || 'غير مسجل')],
           ['p', 'الحالة: ' + (order.status || 'غير محددة')],
-          ['p', 'الإجمالي: ' + (order.total ?? 'غير محدد')],
-          ['p', order.created_at
-            ? 'التاريخ: ' +
-              new Date(order.created_at).toLocaleString('ar-EG')
-            : '']
+          ['p', 'الإجمالي: ' + money(order.total)],
+          ['p', order.created_at ? 'التاريخ: ' + new Date(order.created_at).toLocaleString('ar-EG') : '']
         ];
-
-        details.forEach(([tag, value]) => {
-          const el = document.createElement(tag);
-          el.textContent = value;
-          card.appendChild(el);
-        });
-
+        details.forEach(([tag, value]) => { const el = document.createElement(tag); el.textContent = value; card.appendChild(el); });
         box.appendChild(card);
       });
+    }
+
+    async function loadSalesReport() {
+      const start = $('reportStart').value, end = $('reportEnd').value;
+      if (!start || !end) { setText('reportMessage', 'اختَر تاريخ البداية والنهاية.'); return; }
+      if (start > end) { setText('reportMessage', 'تاريخ البداية لازم يكون قبل تاريخ النهاية أو مساويًا له.'); return; }
+      setText('reportMessage', 'جارٍ تحميل تقرير المبيعات...');
+      $('cashierReport').replaceChildren(); $('completedReportOrders').replaceChildren();
+      const { data: orders, error } = await db.from('orders')
+        .select('id, daily_order_number, order_date, created_at, customer_name, total, status, cashier_user_id')
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(5000);
+      if (error) {
+        setText('reportMessage', 'تعذر تحميل التقرير: ' + error.message);
+        return;
+      }
+      const filtered = (orders || []).filter(order => {
+        const d = orderDate(order);
+        return d && d >= start && d <= end;
+      });
+      const cashierIds = [...new Set(filtered.map(o => o.cashier_user_id).filter(Boolean))];
+      let names = {};
+      if (cashierIds.length) {
+        const { data: profiles, error: profileError } = await db.from('staff_profiles')
+          .select('user_id, display_name, role').in('user_id', cashierIds);
+        if (profileError) {
+          setText('reportMessage', 'تم تحميل الطلبات، لكن تعذر تحميل أسماء الكاشير: ' + profileError.message);
+          return;
+        }
+        (profiles || []).forEach(p => { names[p.user_id] = p.display_name || 'كاشير بدون اسم'; });
+      }
+      const total = filtered.reduce((sum, o) => sum + Number(o.total || 0), 0);
+      setText('reportSales', money(total));
+      setText('reportCount', String(filtered.length));
+      setText('reportAverage', money(filtered.length ? total / filtered.length : 0));
+
+      const grouped = {};
+      filtered.forEach(o => {
+        const key = o.cashier_user_id || 'unassigned';
+        if (!grouped[key]) grouped[key] = { name: key === 'unassigned' ? 'غير منسوب لكاشير' : (names[key] || 'كاشير غير معروف'), count: 0, total: 0 };
+        grouped[key].count += 1;
+        grouped[key].total += Number(o.total || 0);
+      });
+      const table = document.createElement('table');
+      const thead = document.createElement('thead'), headerRow = document.createElement('tr');
+      ['الكاشير', 'عدد الطلبات المكتملة', 'إجمالي المبيعات'].forEach(t => { const th = document.createElement('th'); th.textContent = t; headerRow.appendChild(th); });
+      thead.appendChild(headerRow); table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      const groups = Object.values(grouped).sort((a, b) => b.total - a.total);
+      if (!groups.length) {
+        const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 3; td.textContent = 'لا توجد مبيعات مكتملة في الفترة المحددة.'; tr.appendChild(td); tbody.appendChild(tr);
+      } else {
+        groups.forEach(g => {
+          const tr = document.createElement('tr');
+          [g.name, String(g.count), money(g.total)].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+          tbody.appendChild(tr);
+        });
+      }
+      table.appendChild(tbody); $('cashierReport').appendChild(table);
+
+      if (!filtered.length) {
+        $('completedReportOrders').textContent = 'لا توجد طلبات مكتملة في الفترة المحددة.';
+      } else {
+        filtered.forEach(o => {
+          const card = document.createElement('article'); card.className = 'order';
+          const info = [
+            'طلب رقم ' + (o.daily_order_number ?? o.id),
+            'التاريخ: ' + (orderDate(o) || 'غير محدد'),
+            'العميل: ' + (o.customer_name || 'غير مسجل'),
+            'الكاشير: ' + (o.cashier_user_id ? (names[o.cashier_user_id] || 'كاشير غير معروف') : 'غير منسوب لكاشير'),
+            'الإجمالي: ' + money(o.total)
+          ];
+          info.forEach((txt, i) => { const el = document.createElement(i === 0 ? 'h4' : 'p'); el.textContent = txt; card.appendChild(el); });
+          $('completedReportOrders').appendChild(card);
+        });
+      }
+      setText('reportMessage', `التقرير من ${start} إلى ${end}. تم احتساب ${filtered.length} طلبًا مكتملًا فقط.`);
     }
 
     function formatPrice(item) {
-      if (item.min_price != null && item.max_price != null) {
-        return item.min_price + ' - ' + item.max_price + ' ريال';
-      }
+      if (item.min_price != null && item.max_price != null) return item.min_price + ' - ' + item.max_price + ' ريال';
       return (item.price ?? 'غير محدد') + ' ريال';
     }
-
     async function loadMenu() {
-      setText('menuMessage', 'جارٍ تحميل الأصناف...');
-      $('menuItems').replaceChildren();
-
-      const { data, error } = await db
-        .from('menu_items')
+      setText('menuMessage', 'جارٍ تحميل الأصناف...'); $('menuItems').replaceChildren();
+      const { data, error } = await db.from('menu_items')
         .select('id, name, category, price, is_available, min_price, max_price')
-        .order('category', { ascending: true })
-        .order('name', { ascending: true })
-        .limit(1000);
-
-      if (error) {
-        setText('menuMessage',
-          'تعذر تحميل المنيو. راجع سياسة قراءة المدير: ' + error.message);
-        return;
-      }
-
-      menuData = data || [];
-      renderMenu();
+        .order('category', { ascending: true }).order('name', { ascending: true }).limit(1000);
+      if (error) { setText('menuMessage', 'تعذر تحميل المنيو. راجع سياسة قراءة المدير: ' + error.message); return; }
+      menuData = data || []; renderMenu();
     }
-
     function renderMenu() {
-      const box = $('menuItems');
-      box.replaceChildren();
-
+      const box = $('menuItems'); box.replaceChildren();
       const term = $('menuSearch').value.trim().toLowerCase();
-
       const filtered = menuData.filter(item => {
-        const matchesText =
-          String(item.name || '').toLowerCase().includes(term) ||
-          String(item.category || '').toLowerCase().includes(term);
-
-        const matchesStatus =
-          menuFilter === 'all' ||
-          (menuFilter === 'available' && item.is_available === true) ||
-          (menuFilter === 'unavailable' && item.is_available !== true);
-
+        const matchesText = String(item.name || '').toLowerCase().includes(term) || String(item.category || '').toLowerCase().includes(term);
+        const matchesStatus = menuFilter === 'all' || (menuFilter === 'available' && item.is_available === true) || (menuFilter === 'unavailable' && item.is_available !== true);
         return matchesText && matchesStatus;
       });
-
-      setText('menuMessage',
-        'عدد الأصناف: ' + filtered.length + ' من ' + menuData.length);
-
-      if (!filtered.length) {
-        box.textContent = 'لا توجد أصناف مطابقة.';
-        return;
-      }
-
+      setText('menuMessage', 'عدد الأصناف: ' + filtered.length + ' من ' + menuData.length);
+      if (!filtered.length) { box.textContent = 'لا توجد أصناف مطابقة.'; return; }
       filtered.forEach(item => {
-        const card = document.createElement('article');
-        card.className = 'menu-item';
-
-        const title = document.createElement('h3');
-        title.textContent = item.name || 'بدون اسم';
-
-        const category = document.createElement('p');
-        category.textContent = 'الفئة: ' + (item.category || 'غير محددة');
-
-        const price = document.createElement('p');
-        price.textContent = 'السعر: ' + formatPrice(item);
-
-        const status = document.createElement('span');
-        status.className = 'badge' +
-          (item.is_available ? '' : ' off');
-        status.textContent = item.is_available
-          ? 'متاح للبيع' : 'غير متاح';
-
-        const actions = document.createElement('div');
-        actions.className = 'actions';
-
-        const editBtn = document.createElement('button');
-        editBtn.type = 'button';
-        editBtn.textContent = 'تعديل';
-        editBtn.addEventListener('click', () => beginEdit(item));
-
-        const toggleBtn = document.createElement('button');
-        toggleBtn.type = 'button';
-        toggleBtn.className = item.is_available ? 'danger' : 'success';
-        toggleBtn.textContent = item.is_available
-          ? 'إيقاف البيع' : 'إعادة التفعيل';
-        toggleBtn.addEventListener('click',
-          () => toggleAvailability(item));
-
-        actions.append(editBtn, toggleBtn);
-        card.append(title, category, price, status, actions);
-        box.appendChild(card);
+        const card = document.createElement('article'); card.className = 'menu-item';
+        const title = document.createElement('h3'); title.textContent = item.name || 'بدون اسم';
+        const category = document.createElement('p'); category.textContent = 'الفئة: ' + (item.category || 'غير محددة');
+        const price = document.createElement('p'); price.textContent = 'السعر: ' + formatPrice(item);
+        const status = document.createElement('span'); status.className = 'badge' + (item.is_available ? '' : ' off'); status.textContent = item.is_available ? 'متاح للبيع' : 'غير متاح';
+        const actions = document.createElement('div'); actions.className = 'actions';
+        const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.textContent = 'تعديل'; editBtn.addEventListener('click', () => beginEdit(item));
+        const toggleBtn = document.createElement('button'); toggleBtn.type = 'button'; toggleBtn.className = item.is_available ? 'danger' : 'success'; toggleBtn.textContent = item.is_available ? 'إيقاف البيع' : 'إعادة التفعيل'; toggleBtn.addEventListener('click', () => toggleAvailability(item));
+        actions.append(editBtn, toggleBtn); card.append(title, category, price, status, actions); box.appendChild(card);
       });
     }
-
     function beginEdit(item) {
-      editingItem = item;
-      $('itemId').value = item.id;
-      $('itemName').value = item.name || '';
-      $('itemCategory').value = item.category || '';
-      $('itemPrice').value = item.price ?? '';
-      $('itemMin').value = item.min_price ?? '';
-      $('itemMax').value = item.max_price ?? '';
-      $('itemAvailable').checked = item.is_available === true;
-      setText('formTitle', 'تعديل الصنف');
-      setText('saveItemBtn', 'حفظ التعديلات');
-      $('cancelEditBtn').classList.remove('hidden');
-      $('menuPanel').scrollIntoView({ behavior: 'smooth' });
+      editingItem = item; $('itemId').value = item.id; $('itemName').value = item.name || ''; $('itemCategory').value = item.category || '';
+      $('itemPrice').value = item.price ?? ''; $('itemMin').value = item.min_price ?? ''; $('itemMax').value = item.max_price ?? '';
+      $('itemAvailable').checked = item.is_available === true; setText('formTitle', 'تعديل الصنف'); setText('saveItemBtn', 'حفظ التعديلات');
+      $('cancelEditBtn').classList.remove('hidden'); $('menuPanel').scrollIntoView({ behavior: 'smooth' });
     }
-
     function resetForm() {
-      editingItem = null;
-      $('menuForm').reset();
-      $('itemId').value = '';
-      $('itemAvailable').checked = true;
-      setText('formTitle', 'إضافة صنف جديد');
-      setText('saveItemBtn', 'حفظ الصنف');
-      $('cancelEditBtn').classList.add('hidden');
+      editingItem = null; $('menuForm').reset(); $('itemId').value = ''; $('itemAvailable').checked = true;
+      setText('formTitle', 'إضافة صنف جديد'); setText('saveItemBtn', 'حفظ الصنف'); $('cancelEditBtn').classList.add('hidden');
     }
-
     function validatePrice(price, min, max) {
-      if (!Number.isFinite(price) || price < 0) {
-        return 'أدخل سعرًا صحيحًا.';
-      }
-
-      if ((min === null) !== (max === null)) {
-        return 'أدخل أقل سعر وأعلى سعر معًا، أو اتركهما فارغين.';
-      }
-
-      if (min !== null && max !== null) {
-        if (min < 0 || max < min) {
-          return 'راجع أقل سعر وأعلى سعر.';
-        }
-      }
-
+      if (!Number.isFinite(price) || price < 0) return 'أدخل سعرًا صحيحًا.';
+      if ((min === null) !== (max === null)) return 'أدخل أقل سعر وأعلى سعر معًا، أو اتركهما فارغين.';
+      if (min !== null && max !== null && (min < 0 || max < min)) return 'راجع أقل سعر وأعلى سعر.';
       return '';
     }
-
     $('menuForm').addEventListener('submit', async event => {
       event.preventDefault();
-
-      const name = $('itemName').value.trim();
-      const category = $('itemCategory').value.trim();
-      const price = Number($('itemPrice').value);
-      const minRaw = $('itemMin').value.trim();
-      const maxRaw = $('itemMax').value.trim();
-      const min = minRaw === '' ? null : Number(minRaw);
-      const max = maxRaw === '' ? null : Number(maxRaw);
-
-      if (!name || !category) {
-        setText('menuMessage', 'أدخل اسم الصنف والفئة.');
-        return;
-      }
-
-      const priceError = validatePrice(price, min, max);
-      if (priceError) {
-        setText('menuMessage', priceError);
-        return;
-      }
-
-      const item = {
-        name,
-        category,
-        price,
-        min_price: min,
-        max_price: max,
-        is_available: $('itemAvailable').checked
-      };
-
-      const button = $('saveItemBtn');
-      button.disabled = true;
-      setText('menuMessage', 'جارٍ حفظ الصنف...');
-
+      const name = $('itemName').value.trim(), category = $('itemCategory').value.trim(), price = Number($('itemPrice').value);
+      const minRaw = $('itemMin').value.trim(), maxRaw = $('itemMax').value.trim();
+      const min = minRaw === '' ? null : Number(minRaw), max = maxRaw === '' ? null : Number(maxRaw);
+      if (!name || !category) { setText('menuMessage', 'أدخل اسم الصنف والفئة.'); return; }
+      const priceError = validatePrice(price, min, max); if (priceError) { setText('menuMessage', priceError); return; }
+      const item = { name, category, price, min_price: min, max_price: max, is_available: $('itemAvailable').checked };
+      const button = $('saveItemBtn'); button.disabled = true; setText('menuMessage', 'جارٍ حفظ الصنف...');
       try {
         let result;
-
-        if (editingItem) {
-          result = await db.from('menu_items')
-            .update(item)
-            .eq('id', editingItem.id);
-        } else {
-          result = await db.from('menu_items').insert(item);
-        }
-
-        if (result.error) {
-          throw result.error;
-        }
-
-        setText('menuMessage', 'تم الحفظ بنجاح.');
-        resetForm();
-        await loadMenu();
+        if (editingItem) result = await db.from('menu_items').update(item).eq('id', editingItem.id);
+        else result = await db.from('menu_items').insert(item);
+        if (result.error) throw result.error;
+        setText('menuMessage', 'تم الحفظ بنجاح.'); resetForm(); await loadMenu();
       } catch (err) {
-        setText('menuMessage',
-          'تعذر الحفظ: ' + (err.message || 'خطأ غير معروف'));
-      } finally {
-        button.disabled = false;
-      }
+        setText('menuMessage', 'تعذر الحفظ: ' + (err.message || 'خطأ غير معروف'));
+      } finally { button.disabled = false; }
     });
-
     async function toggleAvailability(item) {
-      const next = !item.is_available;
-      const action = next ? 'إعادة تفعيل' : 'إيقاف';
-
-      if (!confirm('هل تريد ' + action + ' الصنف: ' + item.name + '؟')) {
-        return;
-      }
-
+      const next = !item.is_available, action = next ? 'إعادة تفعيل' : 'إيقاف';
+      if (!confirm('هل تريد ' + action + ' الصنف: ' + item.name + '؟')) return;
       setText('menuMessage', 'جارٍ تحديث حالة الصنف...');
-
-      const { error } = await db
-        .from('menu_items')
-        .update({ is_available: next })
-        .eq('id', item.id);
-
-      if (error) {
-        setText('menuMessage', 'تعذر تحديث الصنف: ' + error.message);
-        return;
-      }
-
-      setText('menuMessage', 'تم تحديث حالة الصنف.');
-      await loadMenu();
+      const { error } = await db.from('menu_items').update({ is_available: next }).eq('id', item.id);
+      if (error) { setText('menuMessage', 'تعذر تحديث الصنف: ' + error.message); return; }
+      setText('menuMessage', 'تم تحديث حالة الصنف.'); await loadMenu();
     }
-
     $('cancelEditBtn').addEventListener('click', resetForm);
     $('menuSearch').addEventListener('input', renderMenu);
-
-    $('showAllBtn').addEventListener('click', () => {
-      menuFilter = 'all';
-      renderMenu();
-    });
-    $('showAvailableBtn').addEventListener('click', () => {
-      menuFilter = 'available';
-      renderMenu();
-    });
-    $('showUnavailableBtn').addEventListener('click', () => {
-      menuFilter = 'unavailable';
-      renderMenu();
-    });
+    $('showAllBtn').addEventListener('click', () => { menuFilter = 'all'; renderMenu(); });
+    $('showAvailableBtn').addEventListener('click', () => { menuFilter = 'available'; renderMenu(); });
+    $('showUnavailableBtn').addEventListener('click', () => { menuFilter = 'unavailable'; renderMenu(); });
 
     document.querySelectorAll('[data-tab]').forEach(button => {
       button.addEventListener('click', () => {
         const target = button.dataset.tab;
-        $('menuPanel').classList.toggle('hidden', target !== 'menuPanel');
-        $('ordersPanel').classList.toggle('hidden', target !== 'ordersPanel');
+        ['menuPanel', 'ordersPanel', 'reportsPanel'].forEach(id => $(id).classList.toggle('hidden', id !== target));
         if (target === 'ordersPanel') loadOrders();
+        if (target === 'reportsPanel') loadSalesReport();
       });
     });
-
     $('loginForm').addEventListener('submit', async event => {
-      event.preventDefault();
-      setText('loginMessage', 'جارٍ تسجيل الدخول...');
-
-      const email = $('email').value.trim();
-      const password = $('password').value;
-
-      const { data, error } = await db.auth.signInWithPassword({
-        email, password
-      });
-
-      if (error) {
-        setText('loginMessage', 'فشل تسجيل الدخول: ' + error.message);
-        return;
-      }
-
-      try {
-        await checkManager(data.user);
-      } catch (err) {
-        showLogin(err.message);
-      }
+      event.preventDefault(); setText('loginMessage', 'جارٍ تسجيل الدخول...');
+      const email = $('email').value.trim(), password = $('password').value;
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      if (error) { setText('loginMessage', 'فشل تسجيل الدخول: ' + error.message); return; }
+      try { await checkManager(data.user); } catch (err) { showLogin(err.message); }
     });
-
     $('refreshBtn').addEventListener('click', loadOrders);
-
+    $('runReportBtn').addEventListener('click', loadSalesReport);
+    $('todayReportBtn').addEventListener('click', async () => { setDefaultReportDates(); await loadSalesReport(); });
     $('logoutBtn').addEventListener('click', async () => {
-      await db.auth.signOut();
-      menuData = [];
-      $('orders').replaceChildren();
-      $('menuItems').replaceChildren();
-      resetForm();
-      showLogin('تم تسجيل الخروج.');
+      await db.auth.signOut(); menuData = []; $('orders').replaceChildren(); $('menuItems').replaceChildren();
+      $('cashierReport').replaceChildren(); $('completedReportOrders').replaceChildren(); resetForm(); showLogin('تم تسجيل الخروج.');
     });
-
     async function restoreSession() {
       const { data, error } = await db.auth.getSession();
-
-      if (error) {
-        showLogin('تعذر التحقق من الجلسة.');
-        return;
-      }
-
-      if (data.session) {
-        try {
-          await checkManager(data.session.user);
-        } catch (err) {
-          showLogin(err.message);
-        }
-      }
+      if (error) { showLogin('تعذر التحقق من الجلسة.'); return; }
+      if (data.session) { try { await checkManager(data.session.user); } catch (err) { showLogin(err.message); } }
     }
-
     restoreSession();
   </script>
 </body>
