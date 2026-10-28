@@ -1,92 +1,529 @@
+
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#b5121b">
-  <meta name="description" content="مطعم العمدة — تصفح المنيو الإلكتروني وتواصل معنا عبر واتساب. مكة المكرمة، العزيزية، شارع عبدالله الخياط.">
+  <meta name="description" content="مطعم العمدة — المنيو الإلكتروني والطلبات والتواصل عبر واتساب. مكة المكرمة، العزيزية، شارع عبدالله الخياط.">
   <title>مطعم العمدة | الطعم اللي يجمعنا</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <style>
-    :root{--red:#b5121b;--red2:#e1262f;--gold:#f5c542;--ink:#171717;--muted:#6b6b6b;--cream:#fffaf0;--white:#fff}
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:var(--cream);color:var(--ink);line-height:1.8}
-    a{color:inherit;text-decoration:none}
-    .topbar{background:var(--ink);color:#fff;font-size:.88rem;padding:8px 5%;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-    .topbar span{display:inline-flex;align-items:center;gap:7px}
-    header{position:sticky;top:0;z-index:10;background:rgba(255,250,240,.95);backdrop-filter:blur(12px);border-bottom:1px solid #eadfce}
-    .nav{max-width:1160px;margin:auto;padding:12px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-    .brand{display:flex;align-items:center;gap:12px;font-weight:900;font-size:1.2rem}
-    .brand img{width:62px;height:54px;object-fit:contain;border-radius:10px;background:#fff}
-    .brand span{color:var(--red)}
-    .navlinks{display:flex;gap:22px;align-items:center;font-weight:700;font-size:.94rem}
-    .navlinks a:hover{color:var(--red)}
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:999px;padding:13px 23px;font-family:inherit;font-weight:800;cursor:pointer;transition:transform .2s,box-shadow .2s,background .2s}
-    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px #0002}
-    .btn-red{background:var(--red);color:#fff}
-    .btn-gold{background:var(--gold);color:#211700}
-    .btn-outline{border:1px solid #ffffff80;color:#fff;background:transparent}
-    .hero{position:relative;overflow:hidden;background:radial-gradient(circle at 15% 15%,#e1262f 0,transparent 32%),linear-gradient(125deg,#171717 0%,#29201d 52%,#751017 100%);color:#fff}
-    .hero:after{content:"";position:absolute;width:420px;height:420px;border:1px solid #f5c54255;border-radius:50%;left:-100px;bottom:-250px;box-shadow:0 0 0 35px #f5c5420b,0 0 0 75px #f5c5420b}
-    .hero-inner{max-width:1160px;margin:auto;padding:74px 22px 82px;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:42px;position:relative;z-index:1}
-    .eyebrow{color:var(--gold);font-weight:800;letter-spacing:.4px}
-    h1{font-size:clamp(2.35rem,5vw,4.6rem);line-height:1.25;margin:12px 0 18px;font-weight:900}
-    h1 em{font-style:normal;color:var(--gold)}
-    .hero p{font-size:1.12rem;color:#f3e8e4;max-width:600px;margin:0 0 28px}
-    .actions{display:flex;gap:12px;flex-wrap:wrap}
-    .logo-panel{display:flex;justify-content:center;align-items:center;min-height:300px}
-    .logo-frame{background:#fff;border:5px solid var(--gold);border-radius:30px;padding:18px;max-width:360px;width:100%;box-shadow:0 24px 65px #0006;transform:rotate(-2deg)}
-    .logo-frame img{display:block;width:100%;max-height:300px;object-fit:contain;border-radius:14px}
-    .trust{background:var(--gold);color:#211700;padding:17px 5%;font-weight:800}
-    .trust-inner{max-width:1050px;margin:auto;display:flex;justify-content:space-around;gap:18px;flex-wrap:wrap}
-    .trust span{display:flex;align-items:center;gap:8px}
-    section{padding:72px 22px}
-    .container{max-width:1100px;margin:auto}
-    .section-head{text-align:center;margin:0 auto 35px;max-width:700px}
-    .section-head .eyebrow{color:var(--red)}
-    h2{font-size:clamp(1.8rem,3.5vw,2.8rem);line-height:1.35;margin:7px 0 12px;font-weight:900}
-    .section-head p{color:var(--muted);margin:0}
-    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-    .feature{background:#fff;border:1px solid #f0e6d7;border-radius:22px;padding:28px 22px;text-align:center;box-shadow:0 10px 30px #2a170b08}
-    .feature .icon{font-size:2rem;width:66px;height:66px;display:grid;place-items:center;background:#fff1d0;border-radius:20px;margin:0 auto 14px}
-    .feature h3{margin:0 0 5px;font-size:1.15rem}
-    .feature p{color:var(--muted);margin:0;font-size:.94rem}
-    .menu-band{background:#f3e8d6}
-    .menu-card{display:grid;grid-template-columns:1fr auto;align-items:center;gap:28px;background:#fff;border-radius:28px;padding:clamp(25px,5vw,52px);border:1px solid #eadcc8;box-shadow:0 15px 40px #3a1c0d0b}
-    .menu-card h2{margin-top:0}
-    .menu-card p{color:var(--muted);max-width:620px}
-    .menu-icon{width:130px;height:130px;border-radius:50%;background:#fff1d0;display:grid;place-items:center;font-size:4rem}
-    .contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-    .contact-card{background:#fff;border:1px solid #f0e6d7;border-radius:22px;padding:25px;display:flex;gap:16px;align-items:flex-start}
-    .contact-card .icon{flex:0 0 50px;height:50px;display:grid;place-items:center;background:#fff1d0;border-radius:15px;font-size:1.4rem}
-    .contact-card h3{margin:0 0 4px}
-    .contact-card p{margin:0;color:var(--muted)}
-    .contact-card a{color:var(--red);font-weight:800;overflow-wrap:anywhere}
-    .cta{background:linear-gradient(120deg,var(--red),#7d0c13);color:#fff;text-align:center}
-    .cta p{color:#ffe8e8;margin:0 auto 24px;max-width:650px}
-    footer{background:#171717;color:#ddd;padding:25px 22px;text-align:center}
-    footer strong{color:var(--gold)}
-    .wa-float{position:fixed;bottom:20px;left:20px;z-index:20;background:#20b866;color:#fff;border-radius:999px;padding:13px 18px;font-weight:900;box-shadow:0 8px 24px #0003;display:flex;gap:8px;align-items:center}
-    .wa-float:hover{transform:translateY(-3px)}
-    @media(max-width:760px){.topbar{justify-content:center;text-align:center}.nav{flex-wrap:wrap}.navlinks{order:3;width:100%;justify-content:center;gap:16px;flex-wrap:wrap;font-size:.86rem}.nav>.btn{padding:10px 14px}.hero-inner{grid-template-columns:1fr;text-align:center;padding-top:52px}.hero p{margin-left:auto;margin-right:auto}.actions{justify-content:center}.logo-panel{min-height:0}.logo-frame{max-width:260px}.features{grid-template-columns:1fr}.menu-card{grid-template-columns:1fr;text-align:center}.menu-icon{margin:auto;grid-row:1;width:95px;height:95px;font-size:3rem}.contact-grid{grid-template-columns:1fr}section{padding:55px 18px}.wa-float{left:12px;bottom:12px;padding:11px 14px}}
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+    :root {
+      --red: #b5121b;
+      --red2: #e1262f;
+      --gold: #f5c542;
+      --ink: #171717;
+      --muted: #6b6b6b;
+      --cream: #fffaf0;
+      --white: #fff;
+    }
+
+    * { box-sizing: border-box; }
+
+    /* منع التمرير السلس التلقائي */
+    html {
+      scroll-behavior: auto;
+      scroll-padding-top: 90px;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Cairo", Tahoma, Arial, sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.8;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    button, input, textarea { font: inherit; }
+
+    .topbar {
+      background: var(--ink);
+      color: #fff;
+      font-size: .88rem;
+      padding: 8px 5%;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .topbar span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255,250,240,.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #eadfce;
+    }
+
+    .nav {
+      max-width: 1160px;
+      margin: auto;
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 900;
+      font-size: 1.2rem;
+    }
+
+    .brand img {
+      width: 62px;
+      height: 54px;
+      object-fit: contain;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .brand span { color: var(--red); }
+
+    .navlinks {
+      display: flex;
+      gap: 22px;
+      align-items: center;
+      font-weight: 700;
+      font-size: .94rem;
+    }
+
+    .navlinks a:hover { color: var(--red); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 0;
+      border-radius: 999px;
+      padding: 13px 23px;
+      font-family: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-red { background: var(--red); color: #fff; }
+    .btn-gold { background: var(--gold); color: #211700; }
+    .btn-outline { border: 1px solid #ffffff80; color: #fff; background: transparent; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at 15% 15%,#e1262f 0,transparent 32%),
+                  linear-gradient(125deg,#171717 0%,#29201d 52%,#751017 100%);
+      color: #fff;
+    }
+
+    .hero:after {
+      content: "";
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      border: 1px solid #f5c54255;
+      border-radius: 50%;
+      left: -100px;
+      bottom: -250px;
+      box-shadow: 0 0 0 35px #f5c5420b, 0 0 0 75px #f5c5420b;
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      max-width: 1160px;
+      margin: auto;
+      padding: 74px 22px 82px;
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      align-items: center;
+      gap: 42px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow { color: var(--gold); font-weight: 800; }
+
+    h1 {
+      font-size: clamp(2.35rem,5vw,4.6rem);
+      line-height: 1.25;
+      margin: 12px 0 18px;
+      font-weight: 900;
+    }
+
+    h1 em { font-style: normal; color: var(--gold); }
+
+    .hero p {
+      font-size: 1.12rem;
+      color: #f3e8e4;
+      max-width: 600px;
+      margin: 0 0 28px;
+    }
+
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .logo-panel {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
+    }
+
+    .logo-frame {
+      background: #fff;
+      border: 5px solid var(--gold);
+      border-radius: 30px;
+      padding: 18px;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 24px 65px #0006;
+      transform: rotate(-2deg);
+    }
+
+    .logo-frame img {
+      display: block;
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 14px;
+    }
+
+    .trust {
+      background: var(--gold);
+      color: #211700;
+      padding: 17px 5%;
+      font-weight: 800;
+    }
+
+    .trust-inner {
+      max-width: 1050px;
+      margin: auto;
+      display: flex;
+      justify-content: space-around;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .trust span { display: flex; align-items: center; gap: 8px; }
+
+    section { padding: 72px 22px; }
+
+    .container { max-width: 1100px; margin: auto; }
+
+    .section-head {
+      text-align: center;
+      margin: 0 auto 35px;
+      max-width: 700px;
+    }
+
+    .section-head .eyebrow { color: var(--red); }
+
+    h2 {
+      font-size: clamp(1.8rem,3.5vw,2.8rem);
+      line-height: 1.35;
+      margin: 7px 0 12px;
+      font-weight: 900;
+    }
+
+    .section-head p { color: var(--muted); margin: 0; }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 18px;
+    }
+
+    .feature {
+      background: #fff;
+      border: 1px solid #f0e6d7;
+      border-radius: 22px;
+      padding: 28px 22px;
+      text-align: center;
+      box-shadow: 0 10px 30px #2a170b08;
+    }
+
+    .feature .icon {
+      font-size: 2rem;
+      width: 66px;
+      height: 66px;
+      display: grid;
+      place-items: center;
+      background: #fff1d0;
+      border-radius: 20px;
+      margin: 0 auto 14px;
+    }
+
+    .feature h3 { margin: 0 0 5px; font-size: 1.15rem; }
+    .feature p { color: var(--muted); margin: 0; font-size: .94rem; }
+
+    .menu-band { background: #f3e8d6; }
+
+    .menu-card {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      align-items: start;
+      gap: 28px;
+      background: #fff;
+      border-radius: 28px;
+      padding: clamp(25px,5vw,52px);
+      border: 1px solid #eadcc8;
+      box-shadow: 0 15px 40px #3a1c0d0b;
+    }
+
+    .menu-card h2 { margin-top: 0; }
+    .menu-card p { color: var(--muted); max-width: 620px; }
+
+    .menu-icon {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: #fff1d0;
+      display: grid;
+      place-items: center;
+      font-size: 3rem;
+    }
+
+    #menu-message { margin: 14px 0; font-weight: 700; }
+
+    #menu-categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 14px 0;
+    }
+
+    .category-button {
+      padding: 9px 14px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      background: #fff;
+      font-family: inherit;
+    }
+
+    .category-button.active {
+      background: var(--red);
+      border-color: var(--red);
+      color: #fff;
+    }
+
+    #menu-items {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .menu-item {
+      min-width: 0;
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #eee;
+    }
+
+    .menu-item h3 { margin: 0 0 6px; font-size: 1.05rem; }
+    .menu-item p { margin: 0 0 12px; }
+
+    .add-button {
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--red);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    #cart-section {
+      display: block;
+      width: 100%;
+      margin-top: 28px;
+      padding: 22px;
+      background: #fff;
+      border: 2px solid #eadcc8;
+      border-radius: 16px;
+    }
+
+    #cart-items { overflow-wrap: anywhere; }
+
+    .cart-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .cart-details { flex: 1; min-width: 140px; font-weight: 700; }
+
+    .cart-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quantity-button {
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 8px;
+      background: #f3e8d6;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .remove-button {
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 8px;
+      background: #fbe8e8;
+      color: #a00;
+      cursor: pointer;
+    }
+
+    .form-field { margin: 14px 0; }
+
+    .form-field label { display: block; font-weight: 700; }
+
+    .form-field input,
+    .form-field textarea {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      border: 1px solid #ddd;
+      border-radius: 9px;
+      background: #fff;
+    }
+
+    .form-field textarea { min-height: 90px; resize: vertical; }
+
+    #order-message { overflow-wrap: anywhere; font-weight: 700; }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .contact-card {
+      background: #fff;
+      border: 1px solid #f0e6d7;
+      border-radius: 22px;
+      padding: 25px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .contact-card .icon {
+      flex: 0 0 50px;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      background: #fff1d0;
+      border-radius: 15px;
+      font-size: 1.4rem;
+    }
+
+    .contact-card h3 { margin: 0 0 4px; }
+    .contact-card p { margin: 0; color: var(--muted); }
+    .contact-card a { color: var(--red); font-weight: 800; overflow-wrap: anywhere; }
+
+    .cta {
+      background: linear-gradient(120deg,var(--red),#7d0c13);
+      color: #fff;
+      text-align: center;
+    }
+
+    .cta p { color: #ffe8e8; margin: 0 auto 24px; max-width: 650px; }
+
+    footer { background: #171717; color: #ddd; padding: 25px 22px; text-align: center; }
+    footer strong { color: var(--gold); }
+
+    .wa-float {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 20;
+      background: #20b866;
+      color: #fff;
+      border-radius: 999px;
+      padding: 13px 18px;
+      font-weight: 900;
+      box-shadow: 0 8px 24px #0003;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    @media(max-width:760px) {
+      .topbar { justify-content: center; text-align: center; }
+      .nav { flex-wrap: wrap; }
+      .navlinks {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: .86rem;
+      }
+      .nav > .btn { padding: 10px 14px; }
+      .hero-inner { grid-template-columns: 1fr; text-align: center; padding-top: 52px; }
+      .hero p { margin-left: auto; margin-right: auto; }
+      .actions { justify-content: center; }
+      .logo-panel { min-height: 0; }
+      .logo-frame { max-width: 260px; }
+      .features { grid-template-columns: 1fr; }
+      .menu-card { grid-template-columns: 1fr; }
+      .menu-icon { display: none; }
+      #menu-items { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; }
+      section { padding: 55px 18px; }
+      .wa-float { left: 12px; bottom: 12px; padding: 11px 14px; }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
   </style>
 </head>
+
 <body>
   <div class="topbar">
     <span>📍 مكة المكرمة، العزيزية، شارع عبدالله الخياط</span>
     <span>☎ <a href="tel:+966533849572" dir="ltr">0533849572</a></span>
   </div>
+
   <header>
     <nav class="nav" aria-label="القائمة الرئيسية">
-      <a class="brand" href="#home"><img src="assets/logo.jpg" alt="شعار مطعم العمدة"><span>مطعم العمدة</span></a>
+      <a class="brand" href="#home">
+        <img src="assets/logo.jpg" alt="شعار مطعم العمدة">
+        <span>مطعم العمدة</span>
+      </a>
       <div class="navlinks">
-        <a href="#home">الرئيسية</a><a href="#about">عن المطعم</a><a href="#menu">المنيو</a><a href="#contact">تواصل معنا</a>
+        <a href="#home">الرئيسية</a>
+        <a href="#about">عن المطعم</a>
+        <a href="#menu">المنيو</a>
+        <a href="#contact">تواصل معنا</a>
       </div>
-
       <a class="btn btn-red" href="#menu">عرض المنيو ↓</a>
     </nav>
   </header>
@@ -99,279 +536,431 @@
           <h1>الطعم الأصيل<br><em>يجمعنا على سفرة واحدة</em></h1>
           <p>اكتشف منيو مطعم العمدة وتصفّح اختياراتك بسهولة. إحنا هنا علشان نخلي الوصول لمنيو المطعم والتواصل معانا أسهل.</p>
           <div class="actions">
-            <a class="btn btn-gold" href="https://alomada.menusplus-qr.com/?branch=alomada" target="_blank" rel="noopener">🍽️ تصفّح المنيو</a>
+            <a class="btn btn-gold" href="#menu">🍽️ تصفّح المنيو</a>
             <a class="btn btn-outline" href="https://wa.me/966533849572" target="_blank" rel="noopener">💬 تواصل عبر واتساب</a>
           </div>
         </div>
-        <div class="logo-panel"><div class="logo-frame"><img src="assets/logo.jpg" alt="شعار مطعم العمدة"></div></div>
+        <div class="logo-panel">
+          <div class="logo-frame">
+            <img src="assets/logo.jpg" alt="شعار مطعم العمدة">
+          </div>
+        </div>
       </div>
     </section>
 
-    <div class="trust"><div class="trust-inner"><span>🍽️ منيو إلكتروني سهل</span><span>📱 تواصل مباشر عبر واتساب</span><span>📍 موقعنا في مكة المكرمة</span></div></div>
+    <div class="trust">
+      <div class="trust-inner">
+        <span>🍽️ منيو إلكتروني سهل</span>
+        <span>📱 تواصل مباشر عبر واتساب</span>
+        <span>📍 موقعنا في مكة المكرمة</span>
+      </div>
+    </div>
 
     <section id="about">
       <div class="container">
-        <div class="section-head"><div class="eyebrow">أهلًا وسهلًا</div><h2>العمدة… اختيارك على ذوقك</h2><p>كل اللي تحتاجه للوصول إلى منيو مطعم العمدة والتواصل معانا، في مكان واحد وبخطوات بسيطة.</p></div>
+        <div class="section-head">
+          <div class="eyebrow">أهلًا وسهلًا</div>
+          <h2>العمدة… اختيارك على ذوقك</h2>
+          <p>كل اللي تحتاجه للوصول إلى منيو مطعم العمدة والتواصل معانا، في مكان واحد وبخطوات بسيطة.</p>
+        </div>
         <div class="features">
-          <article class="feature"><div class="icon">📋</div><h3>منيو في ضغطة</h3><p>افتح المنيو الإلكتروني وتعرّف على الأصناف المتاحة من خلال الرابط الرسمي.</p></article>
-          <article class="feature"><div class="icon">💬</div><h3>تواصل بسهولة</h3><p>راسلنا على واتساب أو اتصل بنا مباشرة للاستفسارات.</p></article>
-          <article class="feature"><div class="icon">📍</div><h3>زورونا في مكة</h3><p>العزيزية، شارع عبدالله الخياط، مكة المكرمة.</p></article>
+          <article class="feature">
+            <div class="icon">📋</div>
+            <h3>منيو في ضغطة</h3>
+            <p>تصفح الأصناف المتاحة بسهولة.</p>
+          </article>
+          <article class="feature">
+            <div class="icon">💬</div>
+            <h3>تواصل بسهولة</h3>
+            <p>راسلنا على واتساب أو اتصل بنا مباشرة للاستفسارات.</p>
+          </article>
+          <article class="feature">
+            <div class="icon">📍</div>
+            <h3>زورونا في مكة</h3>
+            <p>العزيزية، شارع عبدالله الخياط، مكة المكرمة.</p>
+          </article>
         </div>
       </div>
     </section>
 
-<section class="menu-band" id="menu">
-  <div class="container">
-    <div class="menu-card">
-      <div>
-        <div class="eyebrow">اختار اللي على مزاجك</div>
-        <h2>منيو مطعم العمدة</h2>
-        <p>تصفح الأصناف، اختار طلبك، وضيفه لسلة المشتريات.</p>
+    <section class="menu-band" id="menu">
+      <div class="container">
+        <div class="menu-card">
+          <div>
+            <div class="eyebrow">اختار اللي على مزاجك</div>
+            <h2>منيو مطعم العمدة</h2>
+            <p>تصفح الأصناف، اختار طلبك، وضيفه لسلة المشتريات.</p>
 
-        <div id="menu-message" role="status">
-          جاري تجهيز المنيو...
+            <div id="menu-message" role="status" aria-live="polite">جاري تجهيز المنيو...</div>
+            <div id="menu-categories" aria-label="أقسام المنيو"></div>
+            <div id="menu-items"></div>
+
+            <div id="cart-section">
+              <h2>🛒 سلة مشترياتك</h2>
+              <div id="cart-items">السلة فارغة حاليًا.</div>
+              <p id="cart-total">الإجمالي المبدئي: 0 ريال</p>
+
+              <h3>بيانات التوصيل</h3>
+              <div class="form-field">
+                <label for="customer-name">الاسم</label>
+                <input id="customer-name" type="text" placeholder="اكتب اسمك" maxlength="100" autocomplete="name">
+              </div>
+              <div class="form-field">
+                <label for="customer-phone">رقم الهاتف</label>
+                <input id="customer-phone" type="tel" placeholder="رقم هاتفك" maxlength="30" autocomplete="tel">
+              </div>
+              <div class="form-field">
+                <label for="customer-address">عنوان التوصيل</label>
+                <textarea id="customer-address" placeholder="المدينة والشارع ورقم المبنى" maxlength="300" autocomplete="street-address"></textarea>
+              </div>
+
+              <button id="submit-order" type="button" class="btn btn-red" disabled>
+                تأكيد الطلب
+              </button>
+              <p id="order-message" role="status" aria-live="polite"></p>
+            </div>
+          </div>
+
+          <div class="menu-icon" aria-hidden="true">🍽️</div>
         </div>
-
-        <div id="menu-categories"></div>
-
-        <div id="menu-items"></div>
-        
-<div id="cart-section" style="margin-top:24px;padding:20px;background:#fff;border-radius:14px;border:1px solid #eee">
-  <h2>🛒 سلة مشترياتك</h2>
-  <div id="cart-items">السلة فارغة حاليًا.</div>
-  <p id="cart-total">الإجمالي: 0 ريال</p>
-
-  <h3>بيانات التوصيل</h3>
-  <label for="customer-name">الاسم</label>
-  <input id="customer-name" type="text" placeholder="اكتب اسمك" maxlength="100"
-    style="display:block;width:100%;padding:12px;margin:8px 0 14px;box-sizing:border-box">
-
-  <label for="customer-phone">رقم الهاتف</label>
-  <input id="customer-phone" type="tel" placeholder="رقم هاتفك" maxlength="30"
-    style="display:block;width:100%;padding:12px;margin:8px 0 14px;box-sizing:border-box">
-
-  <label for="customer-address">عنوان التوصيل</label>
-  <textarea id="customer-address" placeholder="المدينة والشارع ورقم المبنى" maxlength="300"
-    style="display:block;width:100%;padding:12px;margin:8px 0 14px;box-sizing:border-box"></textarea>
-
-  <button id="submit-order" type="button" class="btn btn-red">
-    تأكيد الطلب
-  </button>
-
-  <p id="order-message" role="status"></p>
-</div>
-
       </div>
-      <div class="menu-icon" aria-hidden="true">🍽️</div>
-    </div>
-  </div>
-</section>
+    </section>
 
     <section id="contact">
       <div class="container">
-        <div class="section-head"><div class="eyebrow">يسعدنا تواصلكم</div><h2>تواصل معنا</h2><p>للاستفسارات، تقدر تتواصل معنا بالهاتف أو واتساب، أو تزورنا في عنواننا.</p></div>
+        <div class="section-head">
+          <div class="eyebrow">يسعدنا تواصلكم</div>
+          <h2>تواصل معنا</h2>
+          <p>للاستفسارات، تقدر تتواصل معنا بالهاتف أو واتساب، أو تزورنا في عنواننا.</p>
+        </div>
         <div class="contact-grid">
-          <div class="contact-card"><div class="icon">📞</div><div><h3>اتصل بنا</h3><p><a href="tel:+966533849572" dir="ltr">0533849572</a></p></div></div>
-          <div class="contact-card"><div class="icon">💬</div><div><h3>واتساب</h3><p><a href="https://wa.me/966533849572" target="_blank" rel="noopener" dir="ltr">0533849572 — ابدأ محادثة</a></p></div></div>
-          <div class="contact-card"><div class="icon">📍</div><div><h3>عنوان المطعم</h3><p>مكة المكرمة، العزيزية، شارع عبدالله الخياط</p><a href="https://www.google.com/maps/search/?api=1&query=مطعم+العمدة+العزيزية+شارع+عبدالله+الخياط+مكة" target="_blank" rel="noopener">افتح الموقع على خرائط Google ↗</a></div></div>
-          <div class="contact-card"><div class="icon">🍴</div><div><h3>المنيو الإلكتروني</h3><p>تصفح قائمة الطعام من خلال الرابط الرسمي.</p><a href="https://alomada.menusplus-qr.com/?branch=alomada" target="_blank" rel="noopener">عرض المنيو ↗</a></div></div>
+          <div class="contact-card">
+            <div class="icon">📞</div>
+            <div><h3>اتصل بنا</h3><p><a href="tel:+966533849572" dir="ltr">0533849572</a></p></div>
+          </div>
+          <div class="contact-card">
+            <div class="icon">💬</div>
+            <div><h3>واتساب</h3><p><a href="https://wa.me/966533849572" target="_blank" rel="noopener" dir="ltr">0533849572 — ابدأ محادثة</a></p></div>
+          </div>
+          <div class="contact-card">
+            <div class="icon">📍</div>
+            <div>
+              <h3>عنوان المطعم</h3>
+              <p>مكة المكرمة، العزيزية، شارع عبدالله الخياط</p>
+              <a href="https://www.google.com/maps/search/?api=1&query=مطعم+العمدة+العزيزية+شارع+عبدالله+الخياط+مكة" target="_blank" rel="noopener">افتح الموقع على خرائط Google ↗</a>
+            </div>
+          </div>
+          <div class="contact-card">
+            <div class="icon">🍴</div>
+            <div><h3>المنيو الإلكتروني</h3><p>اختار أصنافك من المنيو الموجود في الموقع.</p><a href="#menu">اذهب إلى المنيو ↗</a></div>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="cta">
-      <div class="container"><h2>جاهز تتصفح المنيو؟</h2><p>منيو مطعم العمدة على بُعد ضغطة واحدة.</p><div class="actions" style="justify-content:center"><a class="btn btn-gold" href="https://alomada.menusplus-qr.com/?branch=alomada" target="_blank" rel="noopener">عرض المنيو</a><a class="btn btn-outline" href="https://wa.me/966533849572" target="_blank" rel="noopener">تواصل عبر واتساب</a></div></div>
+      <div class="container">
+        <h2>جاهز تطلب من العمدة؟</h2>
+        <p>اختار أصنافك من المنيو وضيفها إلى سلة المشتريات.</p>
+        <div class="actions" style="justify-content:center">
+          <a class="btn btn-gold" href="#menu">اختار طلبك</a>
+          <a class="btn btn-outline" href="https://wa.me/966533849572" target="_blank" rel="noopener">تواصل عبر واتساب</a>
+        </div>
+      </div>
     </section>
   </main>
+
   <a class="wa-float" href="https://wa.me/966533849572" target="_blank" rel="noopener" aria-label="تواصل مع مطعم العمدة عبر واتساب">💬 واتساب</a>
 
-<footer class="site-footer">
-  <div>
-    © <span id="year">2026</span>
-    <strong>لمطعم العمدة</strong>
-    <span>— جميع الحقوق محفوظة</span>
-    <span class="footer-credit"> | تم بواسطة <strong>محمود سمير</strong></span>
-  </div>
-</footer>
+  <footer class="site-footer">
+    <div>
+      © <span id="year">2026</span>
+      <strong>لمطعم العمدة</strong>
+      <span>— جميع الحقوق محفوظة</span>
+      <span class="footer-credit"> | تم بواسطة <strong>محمود سمير</strong></span>
+    </div>
+  </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-(async function () {
-  const message = document.getElementById("menu-message");
-  const categoriesBox = document.getElementById("menu-categories");
-  const itemsBox = document.getElementById("menu-items");
-
-  const supabase = window.supabase.createClient(
-    "https://gbetyfaobnwoqajjdcls.supabase.co",
-    "sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n"
-  );
-
-  const cart = new Map();
-
-  function renderCart() {
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+  (async function () {
+    const message = document.getElementById("menu-message");
+    const categoriesBox = document.getElementById("menu-categories");
+    const itemsBox = document.getElementById("menu-items");
     const cartBox = document.getElementById("cart-items");
     const totalBox = document.getElementById("cart-total");
-    cartBox.replaceChildren();
+    const orderButton = document.getElementById("submit-order");
+    const orderMessage = document.getElementById("order-message");
+    const cart = new Map();
 
-    let total = 0;
-    let needsReview = false;
+    const supabase = window.supabase.createClient(
+      "https://gbetyfaobnwoqajjdcls.supabase.co",
+      "sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n"
+    );
 
-    if (cart.size === 0) {
-      cartBox.textContent = "السلة فارغة حاليًا.";
-    }
+    function renderCart() {
+      cartBox.replaceChildren();
 
-    cart.forEach(({ item, quantity }) => {
-      const row = document.createElement("div");
-      row.style.cssText =
-        "padding:10px 0;border-bottom:1px solid #eee";
+      let total = 0;
+      let needsReview = false;
 
-      const details = document.createElement("span");
-      details.textContent =
-        `${item.name} × ${quantity} — ${
-          item.price != null
-            ? `${Number(item.price) * quantity} ريال`
-            : "السعر يحتاج تأكيدًا"
-        }`;
-
-      if (item.price == null) {
-        needsReview = true;
-      } else {
-        total += Number(item.price) * quantity;
+      if (cart.size === 0) {
+        cartBox.textContent = "السلة فارغة حاليًا. اختار صنفًا من المنيو لإضافته.";
       }
 
-      const minus = document.createElement("button");
-      minus.type = "button";
-      minus.textContent = "−";
-      minus.style.margin = "8px";
-      minus.addEventListener("click", () => {
-        if (quantity <= 1) {
-          cart.delete(item.id);
+      cart.forEach(({ item, quantity }) => {
+        const row = document.createElement("div");
+        row.className = "cart-row";
+
+        const details = document.createElement("span");
+        details.className = "cart-details";
+
+        if (item.price != null && Number.isFinite(Number(item.price))) {
+          const itemTotal = Number(item.price) * quantity;
+          total += itemTotal;
+          details.textContent = `${item.name} × ${quantity} — ${itemTotal} ريال`;
         } else {
-          cart.set(item.id, { item, quantity: quantity - 1 });
+          needsReview = true;
+          details.textContent = `${item.name} × ${quantity} — السعر يحتاج تأكيد المطعم`;
         }
-        renderCart();
-      });
 
-      const plus = document.createElement("button");
-      plus.type = "button";
-      plus.textContent = "+";
-      plus.style.margin = "8px";
-      plus.addEventListener("click", () => {
-        if (quantity < 50) {
-          cart.set(item.id, { item, quantity: quantity + 1 });
+        const controls = document.createElement("div");
+        controls.className = "cart-controls";
+
+        const minus = document.createElement("button");
+        minus.type = "button";
+        minus.className = "quantity-button";
+        minus.textContent = "−";
+        minus.setAttribute("aria-label", `تقليل كمية ${item.name}`);
+
+        minus.addEventListener("click", () => {
+          if (quantity <= 1) {
+            cart.delete(item.id);
+          } else {
+            cart.set(item.id, { item, quantity: quantity - 1 });
+          }
           renderCart();
-          
+        });
 
+        const count = document.createElement("span");
+        count.textContent = String(quantity);
 
-        }
+        const plus = document.createElement("button");
+        plus.type = "button";
+        plus.className = "quantity-button";
+        plus.textContent = "+";
+        plus.setAttribute("aria-label", `زيادة كمية ${item.name}`);
+
+        plus.addEventListener("click", () => {
+          if (quantity < 50) {
+            cart.set(item.id, { item, quantity: quantity + 1 });
+            renderCart();
+          }
+        });
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "remove-button";
+        remove.textContent = "حذف";
+        remove.addEventListener("click", () => {
+          cart.delete(item.id);
+          renderCart();
+        });
+
+        controls.append(minus, count, plus, remove);
+        row.append(details, controls);
+        cartBox.append(row);
       });
 
-      row.append(details, minus, plus);
-      cartBox.append(row);
-    });
+      totalBox.textContent =
+        `الإجمالي المبدئي: ${total} ريال` +
+        (needsReview ? " — يوجد صنف يحتاج تأكيد السعر من المطعم." : "");
 
-    totalBox.textContent =
-      `الإجمالي المبدئي: ${total} ريال` +
-      (needsReview ? " — بعض الأسعار تحتاج تأكيد المطعم" : "");
-  }
+      orderButton.disabled = cart.size === 0;
+    }
 
-  function addToCart(item) {
-    const existing = cart.get(item.id);
+    function addToCart(item) {
+      const existing = cart.get(item.id);
 
-    if (existing) {
-      if (existing.quantity >= 50) return;
+      if (existing && existing.quantity >= 50) {
+        orderMessage.textContent = "الحد الأقصى للصنف الواحد هو 50.";
+        return;
+      }
+
       cart.set(item.id, {
         item,
-        quantity: existing.quantity + 1
+        quantity: existing ? existing.quantity + 1 : 1
       });
-    } else {
-      cart.set(item.id, { item, quantity: 1 });
+
+      orderMessage.textContent = "";
+      renderCart();
+
+      // لا يوجد scrollIntoView أو scrollTo هنا؛ يظل العميل في مكانه.
     }
 
- renderCart();
-  }
+    renderCart();
 
-  renderCart();
+    try {
+      message.textContent = "جاري تحميل المنيو...";
 
-  try {
-    const { data, error } = await supabase
-      .from("menu_items")
-      .select("id, name, category, price, min_price, max_price, is_available")
-      .eq("is_available", true)
-      .order("name");
+      const { data, error } = await supabase
+        .from("menu_items")
+        .select("id, name, category, price, min_price, max_price, is_available")
+        .eq("is_available", true)
+        .order("name");
 
-    if (error) throw error;
+      if (error) throw error;
 
-    if (!data || data.length === 0) {
-      message.textContent = "المنيو غير متاح حاليًا.";
-      return;
+      if (!data || data.length === 0) {
+        message.textContent = "المنيو غير متاح حاليًا.";
+        return;
+      }
+
+      const categories = [
+        ...new Set(data.map(item => item.category).filter(Boolean))
+      ];
+
+      message.textContent =
+        `أهلاً بيكم في منيو مطعم العمدة — ${data.length} صنف`;
+
+      function showCategory(category, selectedButton) {
+        itemsBox.replaceChildren();
+
+        categoriesBox.querySelectorAll("button").forEach(button => {
+          button.classList.toggle("active", button === selectedButton);
+        });
+
+        const filtered = category === "الكل"
+          ? data
+          : data.filter(item => item.category === category);
+
+        filtered.forEach(item => {
+          const card = document.createElement("article");
+          card.className = "menu-item";
+
+          const name = document.createElement("h3");
+          name.textContent = item.name;
+
+          const price = document.createElement("p");
+
+          if (item.price != null) {
+            price.textContent = `${item.price} ريال`;
+          } else if (item.min_price != null && item.max_price != null) {
+            price.textContent =
+              `السعر من ${item.min_price} إلى ${item.max_price} ريال — يُؤكد عند الطلب`;
+          } else {
+            price.textContent = "السعر يُؤكد عند الطلب";
+          }
+
+          const addButton = document.createElement("button");
+          addButton.type = "button";
+          addButton.className = "add-button";
+          addButton.textContent = "أضف للسلة";
+
+          addButton.addEventListener("click", () => {
+            addToCart(item);
+          });
+
+          card.append(name, price, addButton);
+          itemsBox.append(card);
+        });
+      }
+
+      categoriesBox.replaceChildren();
+
+      ["الكل", ...categories].forEach(category => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "category-button";
+        button.textContent = category;
+
+        button.addEventListener("click", () => {
+          showCategory(category, button);
+        });
+
+        categoriesBox.append(button);
+      });
+
+      const allButton = categoriesBox.querySelector("button");
+      showCategory("الكل", allButton);
+
+    } catch (error) {
+      console.error("Menu loading error:", error);
+      message.textContent =
+        "تعذر تحميل المنيو. تحقق من الاتصال بقاعدة البيانات وصلاحيات قراءة الأصناف.";
     }
 
-    const categories = [...new Set(data.map(x => x.category).filter(Boolean))];
-    message.textContent = `أهلاً بيكم في منيو مطعم العمدة — ${data.length} صنف`;
+    // تأكيد الطلب
+    orderButton.addEventListener("click", async () => {
+      const name = document.getElementById("customer-name").value.trim();
+      const phone = document.getElementById("customer-phone").value.trim();
+      const address = document.getElementById("customer-address").value.trim();
 
-    categoriesBox.replaceChildren();
-    itemsBox.replaceChildren();
+      if (!name || !phone || !address) {
+        orderMessage.textContent =
+          "من فضلك اكتب الاسم ورقم الهاتف وعنوان التوصيل.";
+        return;
+      }
 
-    function showCategory(category) {
-      itemsBox.replaceChildren();
+      if (cart.size === 0) {
+        orderMessage.textContent = "أضف صنفًا واحدًا على الأقل إلى السلة.";
+        return;
+      }
 
-      const filtered = category === "الكل"
-        ? data
-        : data.filter(item => item.category === category);
+      const items = [...cart.values()].map(({ item, quantity }) => ({
+        id: item.id,
+        quantity
+      }));
 
-      filtered.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "menu-item";
-        card.style.cssText =
-          "background:#fff;padding:14px;margin:10px 0;border-radius:12px;border:1px solid #eee";
+      orderButton.disabled = true;
+      orderMessage.textContent = "جارٍ إرسال الطلب...";
 
-        const name = document.createElement("h3");
-        name.textContent = item.name;
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "submit-order",
+          {
+            body: { name, phone, address, items }
+          }
+        );
 
-        const price = document.createElement("p");
-        if (item.price != null) {
-          price.textContent = `${item.price} ريال`;
-        } else if (item.min_price != null && item.max_price != null) {
-          price.textContent = `السعر من ${item.min_price} إلى ${item.max_price} ريال — يُؤكد عند الطلب`;
-        } else {
-          price.textContent = "السعر يُؤكد عند الطلب";
+        if (error) {
+          console.error("Submit order function error:", error);
+          throw new Error("تعذر الاتصال بخدمة تسجيل الطلبات.");
         }
 
+        if (!data || !data.success) {
+          throw new Error(data?.error || "لم يتم تأكيد تسجيل الطلب.");
+        }
 
-const addButton = document.createElement("button");
-addButton.type = "button";
-addButton.textContent = "أضف للسلة";
-addButton.style.cssText =
-  "padding:10px 16px;margin-top:8px;border:0;border-radius:8px;background:#b22222;color:white;cursor:pointer";
+        if (data.needs_price_confirmation) {
+          orderMessage.textContent =
+            "وصلت بيانات الطلب، لكن توجد أسعار تحتاج إلى تأكيد المطعم. انتظر تأكيد السعر قبل اعتبار الطلب نهائيًا.";
+          return;
+        }
 
-addButton.addEventListener("click", () => {
-  addToCart(item);
-});
+        orderMessage.textContent =
+          (data.message || "تم تسجيل الطلب بنجاح.") +
+          (data.order_id ? ` رقم الطلب: ${data.order_id}` : "");
 
-card.append(name, price, addButton);
-        itemsBox.append(card);
-      });
-    }
+        cart.clear();
+        renderCart();
 
-    ["الكل", ...categories].forEach(category => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = category;
-      button.style.cssText =
-        "margin:5px;padding:9px 14px;border-radius:20px;border:1px solid #ccc;cursor:pointer";
-      button.addEventListener("click", () => showCategory(category));
-      categoriesBox.append(button);
+        document.getElementById("customer-name").value = "";
+        document.getElementById("customer-phone").value = "";
+        document.getElementById("customer-address").value = "";
+
+      } catch (error) {
+        console.error("Submit order error:", error);
+        orderMessage.textContent =
+          error.message ||
+          "تعذر التأكد من تسجيل الطلب. راجع إعدادات الخدمة قبل إعادة المحاولة.";
+      } finally {
+        orderButton.disabled = cart.size === 0;
+      }
     });
 
-    showCategory("الكل");
-  } catch (error) {
-    console.error("Menu loading error:", error);
-    message.textContent =
-      "تعذر تحميل المنيو. قد تحتاج صلاحيات قراءة جدول الأصناف إلى الضبط.";
-  }
-})();
-</script>
-
+    document.getElementById("year").textContent = new Date().getFullYear();
+  })();
+  </script>
 </body>
 </html>
