@@ -135,6 +135,32 @@
         <div id="menu-categories"></div>
 
         <div id="menu-items"></div>
+        
+<div id="cart-section" style="margin-top:24px;padding:20px;background:#fff;border-radius:14px;border:1px solid #eee">
+  <h2>🛒 سلة مشترياتك</h2>
+  <div id="cart-items">السلة فارغة حاليًا.</div>
+  <p id="cart-total">الإجمالي: 0 ريال</p>
+
+  <h3>بيانات التوصيل</h3>
+  <label for="customer-name">الاسم</label>
+  <input id="customer-name" type="text" placeholder="اكتب اسمك" maxlength="100"
+    style="display:block;width:100%;padding:12px;margin:8px 0 14px;box-sizing:border-box">
+
+  <label for="customer-phone">رقم الهاتف</label>
+  <input id="customer-phone" type="tel" placeholder="رقم هاتفك" maxlength="30"
+    style="display:block;width:100%;padding:12px;margin:8px 0 14px;box-sizing:border-box">
+
+  <label for="customer-address">عنوان التوصيل</label>
+  <textarea id="customer-address" placeholder="المدينة والشارع ورقم المبنى" maxlength="300"
+    style="display:block;width:100%;padding:12px;margin:8px 0 14px;box-sizing:border-box"></textarea>
+
+  <button id="submit-order" type="button" class="btn btn-red">
+    تأكيد الطلب
+  </button>
+
+  <p id="order-message" role="status"></p>
+</div>
+
       </div>
       <div class="menu-icon" aria-hidden="true">🍽️</div>
     </div>
@@ -179,6 +205,148 @@
     "https://gbetyfaobnwoqajjdcls.supabase.co",
     "sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n"
   );
+
+  const cart = new Map();
+
+  function renderCart() {
+    const cartBox = document.getElementById("cart-items");
+    const totalBox = document.getElementById("cart-total");
+    cartBox.replaceChildren();
+
+    let total = 0;
+    let needsReview = false;
+
+    if (cart.size === 0) {
+      cartBox.textContent = "السلة فارغة حاليًا.";
+    }
+
+    cart.forEach(({ item, quantity }) => {
+      const row = document.createElement("div");
+      row.style.cssText =
+        "padding:10px 0;border-bottom:1px solid #eee";
+
+      const details = document.createElement("span");
+      details.textContent =
+        `${item.name} × ${quantity} — ${
+          item.price != null
+            ? `${Number(item.price) * quantity} ريال`
+            : "السعر يحتاج تأكيدًا"
+        }`;
+
+      if (item.price == null) {
+        needsReview = true;
+      } else {
+        total += Number(item.price) * quantity;
+      }
+
+      const minus = document.createElement("button");
+      minus.type = "button";
+      minus.textContent = "−";
+      minus.style.margin = "8px";
+      minus.addEventListener("click", () => {
+        if (quantity <= 1) {
+          cart.delete(item.id);
+        } else {
+          cart.set(item.id, { item, quantity: quantity - 1 });
+        }
+        renderCart();
+      });
+
+      const plus = document.createElement("button");
+      plus.type = "button";
+      plus.textContent = "+";
+      plus.style.margin = "8px";
+      plus.addEventListener("click", () => {
+        if (quantity < 50) {
+          cart.set(item.id, { item, quantity: quantity + 1 });
+          renderCart();
+          
+  document.getElementById("submit-order").addEventListener("click", async () => {
+    const message = document.getElementById("order-message");
+    const button = document.getElementById("submit-order");
+
+    const name = document.getElementById("customer-name").value.trim();
+    const phone = document.getElementById("customer-phone").value.trim();
+    const address = document.getElementById("customer-address").value.trim();
+
+    if (!name || !phone || !address) {
+      message.textContent = "من فضلك اكتب الاسم ورقم الهاتف وعنوان التوصيل.";
+      return;
+    }
+
+    if (cart.size === 0) {
+      message.textContent = "أضف صنفًا واحدًا على الأقل إلى السلة.";
+      return;
+    }
+
+    const items = [...cart.values()].map(({ item, quantity }) => ({
+      id: item.id,
+      quantity
+    }));
+
+    button.disabled = true;
+    message.textContent = "جارٍ إرسال الطلب...";
+
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "submit-order",
+        {
+          body: { name, phone, address, items }
+        }
+      );
+
+      if (error) throw error;
+      if (!data || !data.success) {
+        throw new Error(data?.error || "تعذر إرسال الطلب.");
+      }
+
+      message.textContent = data.message +
+        (data.order_id ? ` رقم الطلب: ${data.order_id}` : "");
+
+      cart.clear();
+      renderCart();
+    } catch (error) {
+      console.error("Submit order error:", error);
+      message.textContent =
+        "لم نتأكد من تسجيل الطلب. راجع إعدادات الدالة وحاول مرة أخرى.";
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+        }
+      });
+
+      row.append(details, minus, plus);
+      cartBox.append(row);
+    });
+
+    totalBox.textContent =
+      `الإجمالي المبدئي: ${total} ريال` +
+      (needsReview ? " — بعض الأسعار تحتاج تأكيد المطعم" : "");
+  }
+
+  function addToCart(item) {
+    const existing = cart.get(item.id);
+
+    if (existing) {
+      if (existing.quantity >= 50) return;
+      cart.set(item.id, {
+        item,
+        quantity: existing.quantity + 1
+      });
+    } else {
+      cart.set(item.id, { item, quantity: 1 });
+    }
+
+    renderCart();
+    document.getElementById("cart-section").scrollIntoView({
+      behavior: "smooth",
+      block: "nearest"
+    });
+  }
+
+  renderCart();
 
   try {
     const { data, error } = await supabase
@@ -225,7 +393,18 @@
           price.textContent = "السعر يُؤكد عند الطلب";
         }
 
-        card.append(name, price);
+
+const addButton = document.createElement("button");
+addButton.type = "button";
+addButton.textContent = "أضف للسلة";
+addButton.style.cssText =
+  "padding:10px 16px;margin-top:8px;border:0;border-radius:8px;background:#b22222;color:white;cursor:pointer";
+
+addButton.addEventListener("click", () => {
+  addToCart(item);
+});
+
+card.append(name, price, addButton);
         itemsBox.append(card);
       });
     }
