@@ -232,7 +232,7 @@
       const grouped = {};
       filtered.forEach(o => {
         const key = o.cashier_user_id || 'unassigned';
-        if (!grouped[key]) grouped[key] = { name: key === 'unassigned' ? 'غير منسوب لكاشير' : (names[key] || 'كاشير غير معروف'), count: 0, total: 0 };
+        if (!grouped[key]) grouped[key] = { name: key === 'unassigned' ? 'غير منسوب لكاشير' : (names[key] || ('كاشير ' + key.slice(0, 4))), count: 0, total: 0 };
         grouped[key].count += 1;
         grouped[key].total += Number(o.total || 0);
       });
@@ -262,7 +262,7 @@
             'طلب رقم ' + (o.daily_order_number ?? o.id),
             'التاريخ: ' + (orderDate(o) || 'غير محدد'),
             'العميل: ' + (o.customer_name || 'غير مسجل'),
-            'الكاشير: ' + (o.cashier_user_id ? (names[o.cashier_user_id] || 'كاشير غير معروف') : 'غير منسوب لكاشير'),
+            'الكاشير: ' + (o.cashier_user_id ? (names[o.cashier_user_id] || ('كاشير ' + o.cashier_user_id.slice(0, 4))) : 'غير منسوب لكاشير'),
             'الإجمالي: ' + money(o.total)
           ];
           info.forEach((txt, i) => { const el = document.createElement(i === 0 ? 'h4' : 'p'); el.textContent = txt; card.appendChild(el); });
