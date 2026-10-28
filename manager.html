@@ -213,17 +213,44 @@
         const d = orderDate(order);
         return d && d >= start && d <= end;
       });
-      const cashierIds = [...new Set(filtered.map(o => o.cashier_user_id).filter(Boolean))];
-      let names = {};
-      if (cashierIds.length) {
-        const { data: profiles, error: profileError } = await db.from('staff_profiles')
-          .select('user_id, display_name, role').in('user_id', cashierIds);
-        if (profileError) {
-          setText('reportMessage', 'تم تحميل الطلبات، لكن تعذر تحميل أسماء الكاشير: ' + profileError.message);
-          return;
-        }
-        (profiles || []).forEach(p => { names[p.user_id] = p.display_name || 'كاشير بدون اسم'; });
-      }
+      const cashierIds = [
+  ...new Set(
+    filtered
+      .map(o => o.cashier_user_id)
+      .filter(Boolean)
+      .map(id => String(id).trim())
+  )
+];
+
+const names = Object.create(null);
+
+if (cashierIds.length) {
+  const { data: profiles, error: profileError } = await db
+    .from('staff_profiles')
+    .select('user_id, display_name, role')
+    .in('user_id', cashierIds);
+
+  if (profileError) {
+    setText(
+      'reportMessage',
+      'تم تحميل الطلبات، لكن تعذر تحميل أسماء الكاشير: ' +
+      profileError.message
+    );
+    return;
+  }
+
+  (profiles || []).forEach(profile => {
+    const id = String(profile.user_id || '').trim();
+
+    if (id) {
+      names[id] = String(profile.display_name || '').trim()
+        || 'كاشير بدون اسم';
+    }
+  });
+
+  console.log('معرّفات الكاشير في التقرير:', cashierIds);
+  console.log('الأسماء التي تم تحميلها:', names);
+}
       const total = filtered.reduce((sum, o) => sum + Number(o.total || 0), 0);
       setText('reportSales', money(total));
       setText('reportCount', String(filtered.length));
