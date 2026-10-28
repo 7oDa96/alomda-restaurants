@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>لوحة مدير مطعم العمدة</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f3ef;
+      margin: 0;
+      color: #29251f;
+    }
+    header {
+      background: #633b20;
+      color: white;
+      padding: 22px;
+      text-align: center;
+    }
+    main {
+      max-width: 1000px;
+      margin: 25px auto;
+      padding: 16px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px #00000010;
+    }
+    input, button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 12px;
+      margin: 7px 0;
+      border-radius: 7px;
+      font-size: 16px;
+    }
+    input { border: 1px solid #ccc; }
+    button {
+      background: #633b20;
+      color: white;
+      border: 0;
+      cursor: pointer;
+    }
+    .hidden { display: none; }
+    .muted { color: #6b625a; }
+    .order {
+      border: 1px solid #e7e0d8;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      overflow-wrap: anywhere;
+    }
+    #message { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>مطعم العمدة</h1>
+    <p>لوحة إدارة المطعم</p>
+  </header>
+
+  <main>
+    <section class="card" id="loginPanel">
+      <h2>تسجيل دخول المدير</h2>
+      <p class="muted">استخدم حساب المدير المسجل في النظام.</p>
+      <form id="loginForm">
+        <input id="email" type="email" placeholder="البريد الإلكتروني"
+          autocomplete="username" required>
+        <input id="password" type="password" placeholder="كلمة المرور"
+          autocomplete="current-password" required>
+        <button type="submit">تسجيل الدخول</button>
+      </form>
+    </section>
+
+    <section class="card hidden" id="dashboard">
+      <h2 id="welcome">لوحة المدير</h2>
+      <button id="refreshBtn" type="button">تحديث الطلبات</button>
+      <button id="logoutBtn" type="button">تسجيل الخروج</button>
+      <p id="message" role="status"></p>
+      <div id="orders"></div>
+    </section>
+  </main>
+
+  <script>
+    const SUPABASE_URL =
+      'https://gbetyfaobnwoqajjdcls.supabase.co';
+    const SUPABASE_KEY =
+      'sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n';
+
+    const db = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    const loginPanel = document.getElementById('loginPanel');
+    const dashboard = document.getElementById('dashboard');
+    const message = document.getElementById('message');
+    const ordersBox = document.getElementById('orders');
+
+    function showMessage(text) {
+      message.textContent = text;
+    }
+
+    function showLogin(text = '') {
+      dashboard.classList.add('hidden');
+      loginPanel.classList.remove('hidden');
+      showMessage(text);
+    }
+
+    async function checkManager(user) {
+      const { data, error } = await db
+        .from('staff_profiles')
+        .select('display_name, role')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        throw new Error('تعذر التحقق من صلاحية الحساب: ' + error.message);
+      }
+
+      if (!data || data.role !== 'manager') {
+        await db.auth.signOut();
+        throw new Error('هذا الحساب ليس لديه صلاحية مدير.');
+      }
+
+      document.getElementById('welcome').textContent =
+        'أهلًا، ' + (data.display_name || 'مدير المطعم');
+
+      loginPanel.classList.add('hidden');
+      dashboard.classList.remove('hidden');
+      await loadOrders();
+    }
+
+    async function loadOrders() {
+      ordersBox.replaceChildren();
+      showMessage('جارٍ تحميل الطلبات...');
+
+      const { data, error } = await db
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200);
+
+      if (error) {
+        showMessage(
+          'تعذر تحميل الطلبات. قد تحتاج سياسات قاعدة البيانات إلى مراجعة. ' +
+          error.message
+        );
+        return;
+      }
+
+      showMessage('عدد الطلبات المعروضة: ' + data.length);
+
+      if (!data.length) {
+        ordersBox.textContent = 'لا توجد طلبات لعرضها.';
+        return;
+      }
+
+      data.forEach(order => {
+        const card = document.createElement('article');
+        card.className = 'order';
+
+        const title = document.createElement('h3');
+        title.textContent = 'طلب رقم ' + order.id;
+
+        const customer = document.createElement('p');
+        customer.textContent =
+          'العميل: ' + (order.customer_name || 'غير مسجل');
+
+        const phone = document.createElement('p');
+        phone.textContent =
+          'الهاتف: ' + (order.customer_phone || 'غير مسجل');
+
+        const status = document.createElement('p');
+        status.textContent =
+          'الحالة: ' + (order.status || 'غير محددة');
+
+        const total = document.createElement('p');
+        total.textContent =
+          'الإجمالي: ' + (order.total ?? 'غير محدد');
+
+        const date = document.createElement('p');
+        date.textContent = order.created_at
+          ? 'التاريخ: ' + new Date(order.created_at).toLocaleString('ar-EG')
+          : '';
+
+        card.append(title, customer, phone, status, total, date);
+        ordersBox.appendChild(card);
+      });
+    }
+
+    document.getElementById('loginForm').addEventListener(
+      'submit', async event => {
+        event.preventDefault();
+        showMessage('جارٍ تسجيل الدخول...');
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        const { data, error } = await db.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) {
+          showMessage('فشل تسجيل الدخول: ' + error.message);
+          return;
+        }
+
+        try {
+          await checkManager(data.user);
+        } catch (err) {
+          showLogin(err.message);
+        }
+      }
+    );
+
+    document.getElementById('refreshBtn').addEventListener(
+      'click', loadOrders
+    );
+
+    document.getElementById('logoutBtn').addEventListener(
+      'click', async () => {
+        await db.auth.signOut();
+        ordersBox.replaceChildren();
+        showLogin('تم تسجيل الخروج.');
+      }
+    );
+
+    async function restoreSession() {
+      const { data, error } = await db.auth.getSession();
+
+      if (error) {
+        showLogin('تعذر التحقق من الجلسة.');
+        return;
+      }
+
+      if (data.session) {
+        try {
+          await checkManager(data.session.user);
+        } catch (err) {
+          showLogin(err.message);
+        }
+      }
+    }
+
+    restoreSession();
+  </script>
+</body>
+</html>
