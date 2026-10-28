@@ -313,9 +313,9 @@
 
     function formatPrice(item) {
       if (item.min_price != null && item.max_price != null) {
-        return item.min_price + ' - ' + item.max_price + ' جنيه';
+        return item.min_price + ' - ' + item.max_price + ' ريال';
       }
-      return (item.price ?? 'غير محدد') + ' جنيه';
+      return (item.price ?? 'غير محدد') + ' ريال';
     }
 
     async function loadMenu() {
