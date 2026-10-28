@@ -877,7 +877,7 @@
 
       categoriesBox.replaceChildren();
 
-      ["الكل", ...categories].forEach(category => {
+      categories.forEach(category => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "category-button";
@@ -890,8 +890,13 @@
         categoriesBox.append(button);
       });
 
-      const allButton = categoriesBox.querySelector("button");
-      showCategory("الكل", allButton);
+      const firstButton = categoriesBox.querySelector("button");
+
+if (firstButton) {
+  showCategory(firstButton.textContent, firstButton);
+} else {
+  message.textContent = "لا توجد أقسام متاحة حاليًا.";
+}
 
     } catch (error) {
       console.error("Menu loading error:", error);
@@ -916,7 +921,15 @@
         return;
       }
 
-      const items = [...cart.values()].map(({ item, quantity }) => ({
+      const items = [...cart.values()].map(
+  ({ item, quantity, selectedPrice }) => ({
+    id: item.id,
+    quantity,
+    selected_price: item.price != null
+      ? null
+      : selectedPrice
+  })
+);
         id: item.id,
         quantity
       }));
