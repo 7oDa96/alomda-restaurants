@@ -248,8 +248,8 @@ if (cashierIds.length) {
     }
   });
 
-  console.log('معرّفات الكاشير في التقرير:', cashierIds);
-  console.log('الأسماء التي تم تحميلها:', names);
+  console.log('معرّفات الكاشير في التقرير:', JSON.stringify(cashierIds, null, 2));
+  console.log('الأسماء التي تم تحميلها:', JSON.stringify(names, null, 2));
 }
       const total = filtered.reduce((sum, o) => sum + Number(o.total || 0), 0);
       setText('reportSales', money(total));
