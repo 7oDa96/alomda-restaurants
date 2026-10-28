@@ -940,7 +940,7 @@
 
         orderMessage.textContent =
           (data.message || "تم تسجيل الطلب بنجاح.") +
-          (data.order_id ? ` رقم الطلب: ${data.order_id}` : "");
+          (data.order_number ? ` رقم الطلب: ${data.order_number}` : "");
 
         cart.clear();
         renderCart();
