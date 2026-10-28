@@ -699,108 +699,117 @@
     );
 
     function renderCart() {
-      cartBox.replaceChildren();
+  cartBox.replaceChildren();
+  let total = 0;
 
-      let total = 0;
-      let needsReview = false;
+  if (cart.size === 0) {
+    cartBox.textContent = "السلة فارغة حاليًا. اختار صنفًا من المنيو لإضافته.";
+  }
 
-      if (cart.size === 0) {
-        cartBox.textContent = "السلة فارغة حاليًا. اختار صنفًا من المنيو لإضافته.";
+  cart.forEach(({ item, quantity, selectedPrice }) => {
+    const row = document.createElement("div");
+    row.className = "cart-row";
+
+    const unitPrice = Number(
+      item.price != null ? item.price : item.min_price
+    );
+    const subtotal = Number((unitPrice * quantity).toFixed(2));
+    total += subtotal;
+
+    const details = document.createElement("span");
+    details.className = "cart-details";
+    details.textContent =
+      `${item.name} × ${quantity} — ${subtotal} ريال`;
+
+    const controls = document.createElement("div");
+    controls.className = "cart-controls";
+
+    const minus = document.createElement("button");
+    minus.type = "button";
+    minus.className = "quantity-button";
+    minus.textContent = "−";
+    minus.addEventListener("click", () => {
+      if (quantity <= 1) {
+        cart.delete(item.id);
+      } else {
+        cart.set(item.id, {
+          item,
+          quantity: quantity - 1,
+          selectedPrice
+        });
       }
-
-      cart.forEach(({ item, quantity }) => {
-        const row = document.createElement("div");
-        row.className = "cart-row";
-
-        const details = document.createElement("span");
-        details.className = "cart-details";
-
-        if (item.price != null && Number.isFinite(Number(item.price))) {
-          const itemTotal = Number(item.price) * quantity;
-          total += itemTotal;
-          details.textContent = `${item.name} × ${quantity} — ${itemTotal} ريال`;
-        } else {
-          needsReview = true;
-          details.textContent = `${item.name} × ${quantity} — السعر يحتاج تأكيد المطعم`;
-        }
-
-        const controls = document.createElement("div");
-        controls.className = "cart-controls";
-
-        const minus = document.createElement("button");
-        minus.type = "button";
-        minus.className = "quantity-button";
-        minus.textContent = "−";
-        minus.setAttribute("aria-label", `تقليل كمية ${item.name}`);
-
-        minus.addEventListener("click", () => {
-          if (quantity <= 1) {
-            cart.delete(item.id);
-          } else {
-            cart.set(item.id, { item, quantity: quantity - 1 });
-          }
-          renderCart();
-        });
-
-        const count = document.createElement("span");
-        count.textContent = String(quantity);
-
-        const plus = document.createElement("button");
-        plus.type = "button";
-        plus.className = "quantity-button";
-        plus.textContent = "+";
-        plus.setAttribute("aria-label", `زيادة كمية ${item.name}`);
-
-        plus.addEventListener("click", () => {
-          if (quantity < 50) {
-            cart.set(item.id, { item, quantity: quantity + 1 });
-            renderCart();
-          }
-        });
-
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "remove-button";
-        remove.textContent = "حذف";
-        remove.addEventListener("click", () => {
-          cart.delete(item.id);
-          renderCart();
-        });
-
-        controls.append(minus, count, plus, remove);
-        row.append(details, controls);
-        cartBox.append(row);
-      });
-
-      totalBox.textContent =
-        `الإجمالي المبدئي: ${total} ريال` +
-        (needsReview ? " — يوجد صنف يحتاج تأكيد السعر من المطعم." : "");
-
-      orderButton.disabled = cart.size === 0;
-    }
-
-    function addToCart(item) {
-      const existing = cart.get(item.id);
-
-      if (existing && existing.quantity >= 50) {
-        orderMessage.textContent = "الحد الأقصى للصنف الواحد هو 50.";
-        return;
-      }
-
-      cart.set(item.id, {
-        item,
-        quantity: existing ? existing.quantity + 1 : 1
-      });
-
-      orderMessage.textContent = "";
       renderCart();
+    });
 
-      // لا يوجد scrollIntoView أو scrollTo هنا؛ يظل العميل في مكانه.
-    }
+    const count = document.createElement("span");
+    count.textContent = String(quantity);
 
-    renderCart();
+    const plus = document.createElement("button");
+    plus.type = "button";
+    plus.className = "quantity-button";
+    plus.textContent = "+";
+    plus.addEventListener("click", () => {
+      if (quantity < 50) {
+        cart.set(item.id, {
+          item,
+          quantity: quantity + 1,
+          selectedPrice
+        });
+        renderCart();
+      }
+    });
 
-    try {
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove-button";
+    remove.textContent = "حذف";
+    remove.addEventListener("click", () => {
+      cart.delete(item.id);
+      renderCart();
+    });
+
+    controls.append(minus, count, plus, remove);
+    row.append(details, controls);
+    cartBox.append(row);
+  });
+
+  totalBox.textContent = `الإجمالي: ${Number(total.toFixed(2))} ريال`;
+  orderButton.disabled = cart.size === 0;
+}
+    function addToCart(item, selectedPrice = null) {
+  const existing = cart.get(item.id);
+
+  if (existing && existing.quantity >= 50) {
+    orderMessage.textContent = "الحد الأقصى للصنف الواحد هو 50.";
+    return;
+  }
+
+  const fixedPrice =
+    item.price != null && Number.isFinite(Number(item.price))
+      ? Number(item.price)
+      : null;
+
+  const price = fixedPrice !== null ? fixedPrice : Number(selectedPrice);
+
+  if (
+    price === null ||
+    !Number.isFinite(price) ||
+    price < Number(item.min_price) ||
+    price > Number(item.max_price)
+  ) {
+    orderMessage.textContent = "اختار سعرًا صحيحًا من النطاق المتاح.";
+    return;
+  }
+
+  cart.set(item.id, {
+    item,
+    quantity: existing ? existing.quantity + 1 : 1,
+    selectedPrice: price
+  });
+
+  orderMessage.textContent = "";
+  renderCart();
+}
       message.textContent = "جاري تحميل المنيو...";
 
       const { data, error } = await supabase
