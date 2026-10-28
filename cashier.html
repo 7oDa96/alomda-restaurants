@@ -34,7 +34,43 @@ function subscribeOrders(){if(channel)client.removeChannel(channel);channel=clie
 function render(){const visible=allOrders.filter(o=>filter==='all'||o.status===filter);$('countNew').textContent=allOrders.filter(o=>o.status==='new').length;$('countPreparing').textContent=allOrders.filter(o=>o.status==='preparing').length;$('countReady').textContent=allOrders.filter(o=>o.status==='ready').length;if(!visible.length){$('orders').innerHTML='<div class="empty" style="grid-column:1/-1">لا توجد طلبات في هذا التصنيف حاليًا.</div>';return}$('orders').innerHTML=visible.map(o=>{const date=o.created_at?new Date(o.created_at).toLocaleString('ar-EG'):'—';const status=o.status||'new';const transitions={new:[['preparing','بدء التحضير'],['cancelled','إلغاء']],preparing:[['ready','الطلب جاهز'],['cancelled','إلغاء']],ready:[['completed','تم التسليم']],completed:[],cancelled:[]};const buttons=(transitions[status]||[]).map(([s,label])=>`<button class="${s==='cancelled'?'danger':'primary'}" data-order="${safeText(o.id)}" data-status="${s}">${label}</button>`).join('');return `<article class="order ${status==='new'?'new':''}"><div class="orderfoot"><h3>طلب رقم #${safeText(o.daily_order_number ?? o.id)}</h3><span class="pill ${safeText(status)}">${statusNames[status]||safeText(status)}</span></div><div class="meta">${safeText(date)}</div><p><strong>العميل:</strong> ${safeText(o.customer_name||'—')}<br><strong>الهاتف:</strong> ${safeText(o.customer_phone||'—')}<br><strong>العنوان:</strong> ${safeText(o.customer_address||'—')}</p><div class="items">${safeText(itemSummary(o.items))}</div><div class="orderfoot"><span class="total">الإجمالي: ${money(o.total)}</span><div style="display:flex;gap:7px;flex-wrap:wrap">${buttons}</div></div></article>`}).join('')}
 $('loginForm').addEventListener('submit',async e=>{e.preventDefault();const email=$('email').value.trim(),password=$('password').value;message($('loginMsg'),'جارٍ تسجيل الدخول...');const {error}=await client.auth.signInWithPassword({email,password});if(error){message($('loginMsg'),'تعذر تسجيل الدخول. تأكد من بيانات الحساب. ('+error.message+')','error');return}const {data}=await client.auth.getUser();currentUser=data.user;try{await showDashboard()}catch(err){message($('loginMsg'),err.message,'error');$('loginBox').classList.remove('hidden');$('dashboard').classList.add('hidden')}});
 $('filters').addEventListener('click',e=>{const b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('active',x===b));render()});
-$('orders').addEventListener('click',async e=>{const b=e.target.closest('button[data-order]');if(!b)return;const id=b.dataset.order,status=b.dataset.status;b.disabled=true;const {error}=await client.from('orders').update({status}).eq('id',id);if(error){alert('لم يتم تحديث حالة الطلب. تحقق من الصلاحيات والاتصال.');b.disabled=false;return}await loadOrders()});
+$('orders').addEventListener('click',async e=>{const b=e.target.closest('button[data-order]');if(!b)return;const id=b.datas$('orders').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-order]');
+  if (!b) return;
+
+  const id = b.dataset.order;
+  const status = b.dataset.status;
+  b.disabled = true;
+
+  try {
+    if (status === 'preparing') {
+      const { data: claimed, error: claimError } = await client
+        .rpc('claim_order', { p_order_id: Number(id) });
+
+      if (claimError) throw claimError;
+
+      if (claimed !== true) {
+        alert('الطلب استلمه كاشير آخر، ولن يتم تغيير حالته.');
+        await loadOrders();
+        return;
+      }
+    }
+
+    const { error } = await client
+      .from('orders')
+      .update({ status })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    await loadOrders();
+  } catch (err) {
+    console.error(err);
+    alert('لم يتم تحديث الطلب. راجع صلاحيات قاعدة البيانات.');
+  } finally {
+    b.disabled = false;
+  }
+});
 $('refresh').addEventListener('click',loadOrders);$('logout').addEventListener('click',async()=>{if(channel)await client.removeChannel(channel);channel=null;await client.auth.signOut();currentUser=null;currentRole=null;$('dashboard').classList.add('hidden');$('loginBox').classList.remove('hidden');$('who').classList.add('hidden');$('password').value=''});
 (async()=>{const {data}=await client.auth.getSession();if(data.session){const {data:u}=await client.auth.getUser();currentUser=u.user;try{await showDashboard()}catch(e){message($('loginMsg'),e.message,'error');$('loginBox').classList.remove('hidden');$('dashboard').classList.add('hidden')}}})();
 </script>
