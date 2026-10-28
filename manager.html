@@ -290,7 +290,7 @@
         card.className = 'order';
 
         const details = [
-          ['h3', 'طلب رقم ' + order.id],
+          ['h3', 'طلب رقم ' + (order.daily_order_number ?? order.id)],
           ['p', 'العميل: ' + (order.customer_name || 'غير مسجل')],
           ['p', 'الهاتف: ' + (order.customer_phone || 'غير مسجل')],
           ['p', 'الحالة: ' + (order.status || 'غير محددة')],
