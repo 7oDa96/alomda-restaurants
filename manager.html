@@ -7,6 +7,7 @@
   <title>لوحة مدير مطعم العمدة</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
       background: #f5f3ef;
@@ -16,26 +17,25 @@
     header {
       background: #633b20;
       color: white;
-      padding: 22px;
+      padding: 20px;
       text-align: center;
     }
     main {
-      max-width: 1000px;
-      margin: 25px auto;
-      padding: 16px;
+      max-width: 1100px;
+      margin: 20px auto;
+      padding: 14px;
     }
     .card {
       background: white;
-      padding: 20px;
+      padding: 18px;
       border-radius: 12px;
       margin-bottom: 18px;
       box-shadow: 0 2px 8px #00000010;
     }
     input, button {
-      box-sizing: border-box;
       width: 100%;
       padding: 12px;
-      margin: 7px 0;
+      margin: 6px 0;
       border-radius: 7px;
       font-size: 16px;
     }
@@ -46,16 +46,54 @@
       border: 0;
       cursor: pointer;
     }
-    .hidden { display: none; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .secondary { background: #75695e; }
+    .danger { background: #a12f2f; }
+    .success { background: #28734a; }
+    .hidden { display: none !important; }
     .muted { color: #6b625a; }
-    .order {
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .tabs button { margin: 0; }
+    .order, .menu-item {
       border: 1px solid #e7e0d8;
       border-radius: 8px;
-      padding: 12px;
+      padding: 13px;
       margin: 10px 0;
       overflow-wrap: anywhere;
     }
-    #message { white-space: pre-wrap; }
+    .menu-item h3 { margin-top: 0; }
+    .menu-item .actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+    }
+    .menu-item .actions button { margin: 0; }
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 20px;
+      background: #e7f4e9;
+      color: #24623b;
+      font-size: 13px;
+    }
+    .badge.off { background: #f8e8e5; color: #942e24; }
+    #message, #menuMessage { white-space: pre-wrap; }
+    .notice {
+      background: #fff6df;
+      padding: 12px;
+      border-radius: 8px;
+      line-height: 1.7;
+    }
   </style>
 </head>
 <body>
@@ -75,14 +113,98 @@
           autocomplete="current-password" required>
         <button type="submit">تسجيل الدخول</button>
       </form>
+      <p id="loginMessage" role="status"></p>
     </section>
 
-    <section class="card hidden" id="dashboard">
-      <h2 id="welcome">لوحة المدير</h2>
-      <button id="refreshBtn" type="button">تحديث الطلبات</button>
-      <button id="logoutBtn" type="button">تسجيل الخروج</button>
-      <p id="message" role="status"></p>
-      <div id="orders"></div>
+    <section class="hidden" id="dashboard">
+      <div class="card">
+        <h2 id="welcome">لوحة المدير</h2>
+        <button id="logoutBtn" class="secondary" type="button">
+          تسجيل الخروج
+        </button>
+        <p id="message" role="status"></p>
+      </div>
+
+      <div class="tabs">
+        <button type="button" data-tab="menuPanel">إدارة المنيو</button>
+        <button type="button" data-tab="ordersPanel">الطلبات</button>
+      </div>
+
+      <section class="card" id="menuPanel">
+        <h2>إدارة المنيو</h2>
+        <p class="muted">
+          أضف الأصناف وعدّل بياناتها أو أوقفها مؤقتًا عن البيع.
+        </p>
+        <p class="notice">
+          لا تحذف الأصناف نهائيًا. إيقاف الصنف يحافظ على بياناته.
+          تأكد من الأسعار قبل حفظ أي تعديل.
+        </p>
+
+        <form id="menuForm">
+          <h3 id="formTitle">إضافة صنف جديد</h3>
+          <input type="hidden" id="itemId">
+
+          <label for="itemName">اسم الصنف</label>
+          <input id="itemName" maxlength="200"
+            placeholder="مثال: عصير مانجو" required>
+
+          <label for="itemCategory">الفئة</label>
+          <input id="itemCategory" maxlength="120"
+            placeholder="مثال: العصائر" required>
+
+          <div class="grid">
+            <div>
+              <label for="itemPrice">السعر الأساسي</label>
+              <input id="itemPrice" type="number" min="0" step="0.01"
+                placeholder="السعر بالجنيه" required>
+            </div>
+            <div>
+              <label for="itemMin">أقل سعر (اختياري)</label>
+              <input id="itemMin" type="number" min="0" step="0.01"
+                placeholder="اتركه فارغًا للسعر الثابت">
+            </div>
+            <div>
+              <label for="itemMax">أعلى سعر (اختياري)</label>
+              <input id="itemMax" type="number" min="0" step="0.01"
+                placeholder="اتركه فارغًا للسعر الثابت">
+            </div>
+          </div>
+
+          <label>
+            <input id="itemAvailable" type="checkbox" checked
+              style="width:auto;margin-left:8px">
+            الصنف متاح للبيع
+          </label>
+
+          <button id="saveItemBtn" type="submit">حفظ الصنف</button>
+          <button id="cancelEditBtn" type="button"
+            class="secondary hidden">إلغاء التعديل</button>
+        </form>
+
+        <hr>
+        <h3>الأصناف المسجلة</h3>
+        <input id="menuSearch" type="search"
+          placeholder="ابحث باسم الصنف أو الفئة">
+
+        <div class="grid">
+          <button id="showAllBtn" type="button">كل الأصناف</button>
+          <button id="showAvailableBtn" type="button" class="success">
+            المتاحة فقط
+          </button>
+          <button id="showUnavailableBtn" type="button" class="secondary">
+            غير المتاحة
+          </button>
+        </div>
+
+        <p id="menuMessage" role="status"></p>
+        <div id="menuItems"></div>
+      </section>
+
+      <section class="card hidden" id="ordersPanel">
+        <h2>الطلبات</h2>
+        <button id="refreshBtn" type="button">تحديث الطلبات</button>
+        <div id="orders"></div>
+      </section>
     </section>
   </main>
 
@@ -93,23 +215,27 @@
       'sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n';
 
     const db = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
+      SUPABASE_URL, SUPABASE_KEY
     );
 
-    const loginPanel = document.getElementById('loginPanel');
-    const dashboard = document.getElementById('dashboard');
-    const message = document.getElementById('message');
-    const ordersBox = document.getElementById('orders');
+    const $ = id => document.getElementById(id);
+    let menuData = [];
+    let menuFilter = 'all';
+    let editingItem = null;
 
-    function showMessage(text) {
-      message.textContent = text;
+    function setText(id, text) {
+      $(id).textContent = text;
     }
 
     function showLogin(text = '') {
-      dashboard.classList.add('hidden');
-      loginPanel.classList.remove('hidden');
-      showMessage(text);
+      $('dashboard').classList.add('hidden');
+      $('loginPanel').classList.remove('hidden');
+      setText('loginMessage', text);
+    }
+
+    function showDashboard() {
+      $('loginPanel').classList.add('hidden');
+      $('dashboard').classList.remove('hidden');
     }
 
     async function checkManager(user) {
@@ -128,17 +254,18 @@
         throw new Error('هذا الحساب ليس لديه صلاحية مدير.');
       }
 
-      document.getElementById('welcome').textContent =
-        'أهلًا، ' + (data.display_name || 'مدير المطعم');
+      setText('welcome',
+        'أهلًا، ' + (data.display_name || 'مدير المطعم'));
 
-      loginPanel.classList.add('hidden');
-      dashboard.classList.remove('hidden');
+      showDashboard();
       await loadOrders();
+      await loadMenu();
     }
 
     async function loadOrders() {
-      ordersBox.replaceChildren();
-      showMessage('جارٍ تحميل الطلبات...');
+      const box = $('orders');
+      box.replaceChildren();
+      setText('message', 'جارٍ تحميل الطلبات...');
 
       const { data, error } = await db
         .from('orders')
@@ -147,17 +274,14 @@
         .limit(200);
 
       if (error) {
-        showMessage(
-          'تعذر تحميل الطلبات. قد تحتاج سياسات قاعدة البيانات إلى مراجعة. ' +
-          error.message
-        );
+        setText('message', 'تعذر تحميل الطلبات: ' + error.message);
         return;
       }
 
-      showMessage('عدد الطلبات المعروضة: ' + data.length);
+      setText('message', 'عدد الطلبات المعروضة: ' + data.length);
 
       if (!data.length) {
-        ordersBox.textContent = 'لا توجد طلبات لعرضها.';
+        box.textContent = 'لا توجد طلبات لعرضها.';
         return;
       }
 
@@ -165,72 +289,310 @@
         const card = document.createElement('article');
         card.className = 'order';
 
-        const title = document.createElement('h3');
-        title.textContent = 'طلب رقم ' + order.id;
+        const details = [
+          ['h3', 'طلب رقم ' + order.id],
+          ['p', 'العميل: ' + (order.customer_name || 'غير مسجل')],
+          ['p', 'الهاتف: ' + (order.customer_phone || 'غير مسجل')],
+          ['p', 'الحالة: ' + (order.status || 'غير محددة')],
+          ['p', 'الإجمالي: ' + (order.total ?? 'غير محدد')],
+          ['p', order.created_at
+            ? 'التاريخ: ' +
+              new Date(order.created_at).toLocaleString('ar-EG')
+            : '']
+        ];
 
-        const customer = document.createElement('p');
-        customer.textContent =
-          'العميل: ' + (order.customer_name || 'غير مسجل');
+        details.forEach(([tag, value]) => {
+          const el = document.createElement(tag);
+          el.textContent = value;
+          card.appendChild(el);
+        });
 
-        const phone = document.createElement('p');
-        phone.textContent =
-          'الهاتف: ' + (order.customer_phone || 'غير مسجل');
-
-        const status = document.createElement('p');
-        status.textContent =
-          'الحالة: ' + (order.status || 'غير محددة');
-
-        const total = document.createElement('p');
-        total.textContent =
-          'الإجمالي: ' + (order.total ?? 'غير محدد');
-
-        const date = document.createElement('p');
-        date.textContent = order.created_at
-          ? 'التاريخ: ' + new Date(order.created_at).toLocaleString('ar-EG')
-          : '';
-
-        card.append(title, customer, phone, status, total, date);
-        ordersBox.appendChild(card);
+        box.appendChild(card);
       });
     }
 
-    document.getElementById('loginForm').addEventListener(
-      'submit', async event => {
-        event.preventDefault();
-        showMessage('جارٍ تسجيل الدخول...');
+    function formatPrice(item) {
+      if (item.min_price != null && item.max_price != null) {
+        return item.min_price + ' - ' + item.max_price + ' جنيه';
+      }
+      return (item.price ?? 'غير محدد') + ' جنيه';
+    }
 
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
+    async function loadMenu() {
+      setText('menuMessage', 'جارٍ تحميل الأصناف...');
+      $('menuItems').replaceChildren();
 
-        const { data, error } = await db.auth.signInWithPassword({
-          email,
-          password
-        });
+      const { data, error } = await db
+        .from('menu_items')
+        .select('id, name, category, price, is_available, min_price, max_price')
+        .order('category', { ascending: true })
+        .order('name', { ascending: true })
+        .limit(1000);
 
-        if (error) {
-          showMessage('فشل تسجيل الدخول: ' + error.message);
-          return;
-        }
+      if (error) {
+        setText('menuMessage',
+          'تعذر تحميل المنيو. راجع سياسة قراءة المدير: ' + error.message);
+        return;
+      }
 
-        try {
-          await checkManager(data.user);
-        } catch (err) {
-          showLogin(err.message);
+      menuData = data || [];
+      renderMenu();
+    }
+
+    function renderMenu() {
+      const box = $('menuItems');
+      box.replaceChildren();
+
+      const term = $('menuSearch').value.trim().toLowerCase();
+
+      const filtered = menuData.filter(item => {
+        const matchesText =
+          String(item.name || '').toLowerCase().includes(term) ||
+          String(item.category || '').toLowerCase().includes(term);
+
+        const matchesStatus =
+          menuFilter === 'all' ||
+          (menuFilter === 'available' && item.is_available === true) ||
+          (menuFilter === 'unavailable' && item.is_available !== true);
+
+        return matchesText && matchesStatus;
+      });
+
+      setText('menuMessage',
+        'عدد الأصناف: ' + filtered.length + ' من ' + menuData.length);
+
+      if (!filtered.length) {
+        box.textContent = 'لا توجد أصناف مطابقة.';
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement('article');
+        card.className = 'menu-item';
+
+        const title = document.createElement('h3');
+        title.textContent = item.name || 'بدون اسم';
+
+        const category = document.createElement('p');
+        category.textContent = 'الفئة: ' + (item.category || 'غير محددة');
+
+        const price = document.createElement('p');
+        price.textContent = 'السعر: ' + formatPrice(item);
+
+        const status = document.createElement('span');
+        status.className = 'badge' +
+          (item.is_available ? '' : ' off');
+        status.textContent = item.is_available
+          ? 'متاح للبيع' : 'غير متاح';
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.textContent = 'تعديل';
+        editBtn.addEventListener('click', () => beginEdit(item));
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = item.is_available ? 'danger' : 'success';
+        toggleBtn.textContent = item.is_available
+          ? 'إيقاف البيع' : 'إعادة التفعيل';
+        toggleBtn.addEventListener('click',
+          () => toggleAvailability(item));
+
+        actions.append(editBtn, toggleBtn);
+        card.append(title, category, price, status, actions);
+        box.appendChild(card);
+      });
+    }
+
+    function beginEdit(item) {
+      editingItem = item;
+      $('itemId').value = item.id;
+      $('itemName').value = item.name || '';
+      $('itemCategory').value = item.category || '';
+      $('itemPrice').value = item.price ?? '';
+      $('itemMin').value = item.min_price ?? '';
+      $('itemMax').value = item.max_price ?? '';
+      $('itemAvailable').checked = item.is_available === true;
+      setText('formTitle', 'تعديل الصنف');
+      setText('saveItemBtn', 'حفظ التعديلات');
+      $('cancelEditBtn').classList.remove('hidden');
+      $('menuPanel').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetForm() {
+      editingItem = null;
+      $('menuForm').reset();
+      $('itemId').value = '';
+      $('itemAvailable').checked = true;
+      setText('formTitle', 'إضافة صنف جديد');
+      setText('saveItemBtn', 'حفظ الصنف');
+      $('cancelEditBtn').classList.add('hidden');
+    }
+
+    function validatePrice(price, min, max) {
+      if (!Number.isFinite(price) || price < 0) {
+        return 'أدخل سعرًا صحيحًا.';
+      }
+
+      if ((min === null) !== (max === null)) {
+        return 'أدخل أقل سعر وأعلى سعر معًا، أو اتركهما فارغين.';
+      }
+
+      if (min !== null && max !== null) {
+        if (min < 0 || max < min) {
+          return 'راجع أقل سعر وأعلى سعر.';
         }
       }
-    );
 
-    document.getElementById('refreshBtn').addEventListener(
-      'click', loadOrders
-    );
+      return '';
+    }
 
-    document.getElementById('logoutBtn').addEventListener(
-      'click', async () => {
-        await db.auth.signOut();
-        ordersBox.replaceChildren();
-        showLogin('تم تسجيل الخروج.');
+    $('menuForm').addEventListener('submit', async event => {
+      event.preventDefault();
+
+      const name = $('itemName').value.trim();
+      const category = $('itemCategory').value.trim();
+      const price = Number($('itemPrice').value);
+      const minRaw = $('itemMin').value.trim();
+      const maxRaw = $('itemMax').value.trim();
+      const min = minRaw === '' ? null : Number(minRaw);
+      const max = maxRaw === '' ? null : Number(maxRaw);
+
+      if (!name || !category) {
+        setText('menuMessage', 'أدخل اسم الصنف والفئة.');
+        return;
       }
-    );
+
+      const priceError = validatePrice(price, min, max);
+      if (priceError) {
+        setText('menuMessage', priceError);
+        return;
+      }
+
+      const item = {
+        name,
+        category,
+        price,
+        min_price: min,
+        max_price: max,
+        is_available: $('itemAvailable').checked
+      };
+
+      const button = $('saveItemBtn');
+      button.disabled = true;
+      setText('menuMessage', 'جارٍ حفظ الصنف...');
+
+      try {
+        let result;
+
+        if (editingItem) {
+          result = await db.from('menu_items')
+            .update(item)
+            .eq('id', editingItem.id);
+        } else {
+          result = await db.from('menu_items').insert(item);
+        }
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        setText('menuMessage', 'تم الحفظ بنجاح.');
+        resetForm();
+        await loadMenu();
+      } catch (err) {
+        setText('menuMessage',
+          'تعذر الحفظ: ' + (err.message || 'خطأ غير معروف'));
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    async function toggleAvailability(item) {
+      const next = !item.is_available;
+      const action = next ? 'إعادة تفعيل' : 'إيقاف';
+
+      if (!confirm('هل تريد ' + action + ' الصنف: ' + item.name + '؟')) {
+        return;
+      }
+
+      setText('menuMessage', 'جارٍ تحديث حالة الصنف...');
+
+      const { error } = await db
+        .from('menu_items')
+        .update({ is_available: next })
+        .eq('id', item.id);
+
+      if (error) {
+        setText('menuMessage', 'تعذر تحديث الصنف: ' + error.message);
+        return;
+      }
+
+      setText('menuMessage', 'تم تحديث حالة الصنف.');
+      await loadMenu();
+    }
+
+    $('cancelEditBtn').addEventListener('click', resetForm);
+    $('menuSearch').addEventListener('input', renderMenu);
+
+    $('showAllBtn').addEventListener('click', () => {
+      menuFilter = 'all';
+      renderMenu();
+    });
+    $('showAvailableBtn').addEventListener('click', () => {
+      menuFilter = 'available';
+      renderMenu();
+    });
+    $('showUnavailableBtn').addEventListener('click', () => {
+      menuFilter = 'unavailable';
+      renderMenu();
+    });
+
+    document.querySelectorAll('[data-tab]').forEach(button => {
+      button.addEventListener('click', () => {
+        const target = button.dataset.tab;
+        $('menuPanel').classList.toggle('hidden', target !== 'menuPanel');
+        $('ordersPanel').classList.toggle('hidden', target !== 'ordersPanel');
+        if (target === 'ordersPanel') loadOrders();
+      });
+    });
+
+    $('loginForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      setText('loginMessage', 'جارٍ تسجيل الدخول...');
+
+      const email = $('email').value.trim();
+      const password = $('password').value;
+
+      const { data, error } = await db.auth.signInWithPassword({
+        email, password
+      });
+
+      if (error) {
+        setText('loginMessage', 'فشل تسجيل الدخول: ' + error.message);
+        return;
+      }
+
+      try {
+        await checkManager(data.user);
+      } catch (err) {
+        showLogin(err.message);
+      }
+    });
+
+    $('refreshBtn').addEventListener('click', loadOrders);
+
+    $('logoutBtn').addEventListener('click', async () => {
+      await db.auth.signOut();
+      menuData = [];
+      $('orders').replaceChildren();
+      $('menuItems').replaceChildren();
+      resetForm();
+      showLogin('تم تسجيل الخروج.');
+    });
 
     async function restoreSession() {
       const { data, error } = await db.auth.getSession();
