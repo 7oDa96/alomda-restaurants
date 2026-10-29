@@ -784,20 +784,24 @@
     return;
   }
 
-  const fixedPrice =
-    item.price != null && Number.isFinite(Number(item.price))
+  const price =
+    item.price != null
       ? Number(item.price)
-      : null;
-
-  const price = fixedPrice !== null ? fixedPrice : Number(selectedPrice);
+      : Number(item.min_price);
 
   if (
-    price === null ||
     !Number.isFinite(price) ||
-    price < Number(item.min_price) ||
-    price > Number(item.max_price)
+    price <= 0 ||
+    (
+      item.price == null &&
+      (
+        item.min_price == null ||
+        item.max_price == null ||
+        price > Number(item.max_price)
+      )
+    )
   ) {
-    orderMessage.textContent = "اختار سعرًا صحيحًا من النطاق المتاح.";
+    orderMessage.textContent = "تعذر تحديد سعر الصنف.";
     return;
   }
 
