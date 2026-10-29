@@ -921,20 +921,15 @@ if (firstButton) {
         return;
       }
 
-      const items = [...cart.values()].map(
-  ({ item, quantity, selectedPrice }) => ({
-    id: item.id,
-    quantity,
-    selected_price: item.price != null
-      ? null
-      : selectedPrice
-  })
-);
-        id: item.id,
-        quantity
-      }));
+    const items = [...cart.values()].map(({ item, quantity }) => ({
+  id: item.id,
+  quantity,
+  selected_price:
+    item.price != null ? null : Number(item.min_price)
+}));
 
-      orderButton.disabled = true;
+orderButton.disabled = true;
+orderMessage.textContent = "جارٍ إرسال الطلب...";
       orderMessage.textContent = "جارٍ إرسال الطلب...";
 
       try {
