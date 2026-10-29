@@ -850,33 +850,42 @@
 
         filtered.forEach(item => {
           const card = document.createElement("article");
-          card.className = "menu-item";
+card.className = "menu-item";
 
-          const name = document.createElement("h3");
-          name.textContent = item.name;
+if (item.image_url) {
+  const image = document.createElement("img");
+  image.src = item.image_url;
+  image.alt = item.name;
+  image.loading = "lazy";
+  image.className = "menu-item-image";
+  card.append(image);
+}
 
-          const price = document.createElement("p");
+const name = document.createElement("h3");
+name.textContent = item.name;
 
-          if (item.price != null) {
-            price.textContent = `${item.price} ريال`;
-          } else if (item.min_price != null && item.max_price != null) {
-            price.textContent =
-              `السعر من ${item.min_price} إلى ${item.max_price} ريال — يُؤكد عند الطلب`;
-          } else {
-            price.textContent = "السعر يُؤكد عند الطلب";
-          }
+const price = document.createElement("p");
 
-          const addButton = document.createElement("button");
-          addButton.type = "button";
-          addButton.className = "add-button";
-          addButton.textContent = "أضف للسلة";
+if (item.price != null) {
+  price.textContent = `${item.price} ريال`;
+} else if (item.min_price != null && item.max_price != null) {
+  price.textContent =
+    `السعر من ${item.min_price} إلى ${item.max_price} ريال — يُؤكد عند الطلب`;
+} else {
+  price.textContent = "السعر يُؤكد عند الطلب";
+}
 
-          addButton.addEventListener("click", () => {
-            addToCart(item);
-          });
+const addButton = document.createElement("button");
+addButton.type = "button";
+addButton.className = "add-button";
+addButton.textContent = "أضف للسلة";
 
-          card.append(name, price, addButton);
-          itemsBox.append(card);
+addButton.addEventListener("click", () => {
+  addToCart(item);
+});
+
+card.append(name, price, addButton);
+itemsBox.append(card);
         });
       }
 
