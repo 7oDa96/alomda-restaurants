@@ -810,7 +810,8 @@
   orderMessage.textContent = "";
   renderCart();
 }
-      message.textContent = "جاري تحميل المنيو...";
+    try {
+    message.textContent = "جاري تحميل المنيو...";
 
       const { data, error } = await supabase
         .from("menu_items")
@@ -930,7 +931,6 @@ if (firstButton) {
 
 orderButton.disabled = true;
 orderMessage.textContent = "جارٍ إرسال الطلب...";
-      orderMessage.textContent = "جارٍ إرسال الطلب...";
 
       try {
         const { data, error } = await supabase.functions.invoke(
