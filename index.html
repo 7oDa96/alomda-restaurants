@@ -819,7 +819,7 @@
 
       const { data, error } = await supabase
         .from("menu_items")
-        .select("id, name, category, price, min_price, max_price, is_available")
+        .select("id, name, category, price, min_price, max_price, is_available, image_url")
         .eq("is_available", true)
         .order("name");
 
