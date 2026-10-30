@@ -463,6 +463,41 @@ if (cashierIds.length) {
       try { await checkManager(data.user); } catch (err) { showLogin(err.message); }
     });
     $('refreshBtn').addEventListener('click', loadOrders);
+    $('todayView').addEventListener('click', async () => {
+  viewMode = 'today';
+  $('todayView').classList.remove('secondary');
+  $('archiveView').classList.add('secondary');
+  $('archiveDate').classList.add('hidden');
+  await loadOrders();
+});
+
+$('archiveView').addEventListener('click', async () => {
+  viewMode = 'archive';
+
+  const today = riyadhDateKey();
+  const [year, month, day] = today.split('-').map(Number);
+  const yesterday = new Date(Date.UTC(year, month - 1, day - 1))
+    .toISOString()
+    .slice(0, 10);
+
+  $('archiveDate').max = yesterday;
+
+  if (!$('archiveDate').value || $('archiveDate').value >= today) {
+    $('archiveDate').value = yesterday;
+  }
+
+  $('todayView').classList.add('secondary');
+  $('archiveView').classList.remove('secondary');
+  $('archiveDate').classList.remove('hidden');
+
+  await loadOrders();
+});
+
+$('archiveDate').addEventListener('change', async () => {
+  if (viewMode === 'archive' && $('archiveDate').value) {
+    await loadOrders();
+  }
+});
     $('runReportBtn').addEventListener('click', loadSalesReport);
     $('todayReportBtn').addEventListener('click', async () => { setDefaultReportDates(); await loadSalesReport(); });
     $('logoutBtn').addEventListener('click', async () => {
