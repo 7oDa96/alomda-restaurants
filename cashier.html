@@ -13,8 +13,24 @@
 <main class="wrap">
 <section id="loginBox" class="panel login"><h1 class="h">تسجيل دخول الموظفين</h1><p class="muted">الدخول مخصص لحسابات الموظفين المعتمدة فقط.</p><form id="loginForm"><label class="field" for="email">البريد الإلكتروني</label><input id="email" type="email" autocomplete="username" required><label class="field" for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required><button class="primary full" type="submit">دخول لوحة الكاشير</button></form><div id="loginMsg" class="status hidden" role="status"></div><p class="small">لا تشارك كلمة مرورك مع الآخرين. إذا كان الحساب غير مضاف إلى الموظفين، سيتم رفض الوصول.</p></section>
 <section id="dashboard" class="hidden"><div class="panel"><h1 class="h">الطلبات الواردة</h1><p class="muted">تتحدث القائمة تلقائيًا عند وصول طلب جديد. الكاشير هو المسؤول عن تحديث حالة الطلب.</p><div id="connection" class="status">جارٍ الاتصال...</div><div class="stats"><div class="stat">طلبات جديدة<strong id="countNew">0</strong></div><div class="stat">قيد التحضير<strong id="countPreparing">0</strong></div><div class="stat">جاهزة<strong id="countReady">0</strong></div></div><div class="toolbar"><div class="filters" id="filters"><button class="secondary active" data-filter="all">كل الطلبات</button><button class="secondary" data-filter="new">جديدة</button><button class="secondary" data-filter="preparing">قيد التحضير</button><button class="secondary" data-filter="ready">جاهزة</button><button class="secondary" data-filter="completed">مكتملة</button></div><button id="refresh" class="secondary">تحديث</button></div>
-<div id="orders" class="orders"></div>
+<div class="toolbar" style="margin-top:15px">
+  <button id="todayView" class="secondary active" type="button">
+    طلبات اليوم
+  </button>
 
+  <button id="archiveView" class="secondary" type="button">
+    أرشيف الطلبات
+  </button>
+
+  <input
+    id="archiveDate"
+    type="date"
+    class="secondary hidden"
+    style="padding:10px"
+  >
+</div>
+
+<div id="orders" class="orders"></div>
 <!-- إدارة توفر الأصناف -->
 <div style="margin-top:28px;padding-top:22px;border-top:2px solid #eee">
   <h2 class="h">إدارة توفر الأصناف</h2>
