@@ -830,7 +830,9 @@
         .from("menu_items")
         .select("id, name, category, price, min_price, max_price, is_available, image_url")
         .eq("is_available", true)
-        .order("name");
+        .order("category")
+.order("sort_order", { ascending: true })
+.order("name");
 
       if (error) throw error;
 
