@@ -138,8 +138,7 @@
     const SUPABASE_KEY = 'sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const $ = id => document.getElementById(id);
-    let menuData = [], menuFilter = 'all', editingItem = null;
-
+let menuData = [], menuFilter = 'all', editingItem = null, viewMode = 'today';
     function setText(id, text) { $(id).textContent = text; }
     function showLogin(text = '') {
       $('dashboard').classList.add('hidden'); $('loginPanel').classList.remove('hidden'); setText('loginMessage', text);
@@ -180,26 +179,85 @@
       $('reportEnd').value = today;
     }
 
-    async function loadOrders() {
-      const box = $('orders'); box.replaceChildren(); setText('message', 'جارٍ تحميل الطلبات...');
-      const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false }).limit(200);
-      if (error) { setText('message', 'تعذر تحميل الطلبات: ' + error.message); return; }
-      setText('message', 'عدد الطلبات المعروضة: ' + data.length);
-      if (!data.length) { box.textContent = 'لا توجد طلبات لعرضها.'; return; }
-      data.forEach(order => {
-        const card = document.createElement('article'); card.className = 'order';
-        const details = [
-          ['h3', 'طلب رقم ' + (order.daily_order_number ?? order.id)],
-          ['p', 'العميل: ' + (order.customer_name || 'غير مسجل')],
-          ['p', 'الهاتف: ' + (order.customer_phone || 'غير مسجل')],
-          ['p', 'الحالة: ' + (order.status || 'غير محددة')],
-          ['p', 'الإجمالي: ' + money(order.total)],
-          ['p', order.created_at ? 'التاريخ: ' + new Date(order.created_at).toLocaleString('ar-EG') : '']
-        ];
-        details.forEach(([tag, value]) => { const el = document.createElement(tag); el.textContent = value; card.appendChild(el); });
-        box.appendChild(card);
-      });
-    }
+    function riyadhDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Riyadh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(date);
+
+  const get = type => parts.find(p => p.type === type).value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
+
+function riyadhDayBounds(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const start = Date.UTC(year, month - 1, day) - 3 * 60 * 60 * 1000;
+
+  return {
+    start: new Date(start).toISOString(),
+    end: new Date(start + 24 * 60 * 60 * 1000).toISOString()
+  };
+}
+
+async function loadOrders() {
+  const box = $('orders');
+  box.replaceChildren();
+  setText('message', 'جارٍ تحميل الطلبات...');
+
+  const today = riyadhDateKey();
+  const dateKey = viewMode === 'today'
+    ? today
+    : ($('archiveDate').value || today);
+
+  const { start, end } = riyadhDayBounds(dateKey);
+
+  const { data, error } = await db
+    .from('orders')
+    .select('*')
+    .gte('created_at', start)
+    .lt('created_at', end)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    setText('message', 'تعذر تحميل الطلبات: ' + error.message);
+    return;
+  }
+
+  setText('message', 'عدد الطلبات المعروضة: ' + data.length);
+
+  if (!data.length) {
+    box.textContent = 'لا توجد طلبات في هذا التاريخ.';
+    return;
+  }
+
+  data.forEach(order => {
+    const card = document.createElement('article');
+    card.className = 'order';
+
+    const details = [
+      ['h3', 'طلب رقم ' + (order.daily_order_number ?? order.id)],
+      ['p', 'العميل: ' + (order.customer_name || 'غير مسجل')],
+      ['p', 'الهاتف: ' + (order.customer_phone || 'غير مسجل')],
+      ['p', 'الحالة: ' + (order.status || 'غير محددة')],
+      ['p', 'الإجمالي: ' + money(order.total)],
+      ['p', order.created_at
+        ? 'التاريخ: ' + new Date(order.created_at).toLocaleString('ar-EG', {
+            timeZone: 'Asia/Riyadh'
+          })
+        : '']
+    ];
+
+    details.forEach(([tag, value]) => {
+      const el = document.createElement(tag);
+      el.textContent = value;
+      card.appendChild(el);
+    });
+
+    box.appendChild(card);
+  });
+}
 
     async function loadSalesReport() {
       const start = $('reportStart').value, end = $('reportEnd').value;
