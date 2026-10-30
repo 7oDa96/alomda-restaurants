@@ -73,14 +73,80 @@ const SUPABASE_URL = 'https://gbetyfaobnwoqajjdcls.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n';
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const $ = id => document.getElementById(id);
-let currentUser=null, currentRole=null, allOrders=[], filter='all', channel=null, lastSeen=new Set();
-const statusNames={new:'جديد',preparing:'قيد التحضير',ready:'جاهز',completed:'مكتمل',cancelled:'ملغي'};
+let currentUser=null, currentRole=null, allOrders=[], filter='all', channel=null, lastSeen=new Set(), viewMode='today';const statusNames={new:'جديد',preparing:'قيد التحضير',ready:'جاهز',completed:'مكتمل',cancelled:'ملغي'};
 function message(el,text,type=''){el.textContent=text;el.className='status'+(type?' '+type:'');el.classList.remove('hidden')}
 function safeText(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function money(value){const n=Number(value);return Number.isFinite(n)?n.toLocaleString('ar-EG',{minimumFractionDigits:2,maximumFractionDigits:2})+' ر.س':'—'}
+function riyadhDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Riyadh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(date);
+
+  const get = type => parts.find(p => p.type === type).value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
+
+function riyadhDayBounds(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const start = Date.UTC(year, month - 1, day) - 3 * 60 * 60 * 1000;
+  const end = start + 24 * 60 * 60 * 1000;
+
+  return {
+    start: new Date(start).toISOString(),
+    end: new Date(end).toISOString()
+  };
+}
 function itemSummary(items){if(Array.isArray(items))return items.map(i=>`${i.name||i.title||i.product_name||'صنف'} × ${i.quantity||i.qty||1}`).join('\n');if(items&&typeof items==='object')return JSON.stringify(items,null,2);return String(items||'لا توجد تفاصيل')}
 async function checkProfile(){const {data,error}=await client.from('staff_profiles').select('display_name,role').eq('user_id',currentUser.id).maybeSingle();if(error||!data||!['cashier','manager'].includes(data.role)){await client.auth.signOut();currentUser=null;throw new Error('هذا الحساب غير مضاف كموظف معتمد. راجع المدير.')}currentRole=data.role;$('who').textContent=(data.display_name||currentUser.email)+' — '+(currentRole==='manager'?'مدير':'كاشير');$('who').classList.remove('hidden');$('roleText').textContent='الدخول الحالي: '+(currentRole==='manager'?'مدير':'كاشير')+' | تعديل حالة الطلب فقط.'}
-async function showDashboard(){ $('loginBox').classList.add('hidden');$('dashboard').classList.remove('hidden');await checkProfile();await loadOrders();await loadMenuItems();subscribeOrders()}async function loadOrders(){message($('connection'),'جارٍ تحميل الطلبات...');const {data,error}=await client.from('orders').select('*').order('created_at',{ascending:false}).limit(200);if(error){message($('connection'),'تعذر تحميل الطلبات: '+error.message,'error');return}allOrders=data||[];allOrders.forEach(o=>lastSeen.add(String(o.id)));render();message($('connection'),'متصل بقاعدة البيانات. سيتم تحديث الطلبات الجديدة تلقائيًا.','good')}
+async function showDashboard(){ $('loginBox').classList.add('hidden');$('dashboard').classList.remove('hidden');await checkProfile();await loadOrders();await loadMenuItems();subscribeOrders()}async function loadOrders() {
+  message($('connection'), 'جارٍ تحميل الطلبات...');
+
+  const today = riyadhDateKey();
+  const dateKey = viewMode === 'today'
+    ? today
+    : ($('archiveDate').value || today);
+
+  const { start, end } = riyadhDayBounds(dateKey);
+
+  let orders = [];
+  let from = 0;
+  const pageSize = 1000;
+
+  while (true) {
+    const { data, error } = await client
+      .from('orders')
+      .select('*')
+      .gte('created_at', start)
+      .lt('created_at', end)
+      .order('created_at', { ascending: false })
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      message($('connection'), 'تعذر تحميل الطلبات: ' + error.message, 'error');
+      return;
+    }
+
+    orders = orders.concat(data || []);
+
+    if (!data || data.length < pageSize) break;
+
+    from += pageSize;
+  }
+
+  allOrders = orders;
+  allOrders.forEach(o => lastSeen.add(String(o.id)));
+
+  render();
+
+  message(
+    $('connection'),
+    'متصل بقاعدة البيانات. سيتم تحديث الطلبات الجديدة تلقائيًا.',
+    'good'
+  );
+}{message($('connection'),'جارٍ تحميل الطلبات...');const {data,error}=await client.from('orders').select('*').order('created_at',{ascending:false}).limit(200);if(error){message($('connection'),'تعذر تحميل الطلبات: '+error.message,'error');return}allOrders=data||[];allOrders.forEach(o=>lastSeen.add(String(o.id)));render();message($('connection'),'متصل بقاعدة البيانات. سيتم تحديث الطلبات الجديدة تلقائيًا.','good')}
 function subscribeOrders(){if(channel)client.removeChannel(channel);channel=client.channel('cashier-orders').on('postgres_changes',{event:'*',schema:'public',table:'orders'},payload=>{if(payload.eventType==='INSERT'&&payload.new){const id=String(payload.new.id);if(!lastSeen.has(id)){lastSeen.add(id);try{const ctx=new (window.AudioContext||window.webkitAudioContext)();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=880;gain.gain.value=.06;osc.start();osc.stop(ctx.currentTime+.18)}catch(e){} } }loadOrders()}).subscribe(state=>{if(state==='SUBSCRIBED')message($('connection'),'متصل — استقبال مباشر للطلبات مفعّل.','good');else if(state==='CHANNEL_ERROR'||state==='TIMED_OUT')message($('connection'),'تعذر الاتصال المباشر. تحقق من إعداد Realtime ثم اضغط تحديث.','error')})}
 function render(){const visible=allOrders.filter(o=>filter==='all'||o.status===filter);$('countNew').textContent=allOrders.filter(o=>o.status==='new').length;$('countPreparing').textContent=allOrders.filter(o=>o.status==='preparing').length;$('countReady').textContent=allOrders.filter(o=>o.status==='ready').length;if(!visible.length){$('orders').innerHTML='<div class="empty" style="grid-column:1/-1">لا توجد طلبات في هذا التصنيف حاليًا.</div>';return}$('orders').innerHTML=visible.map(o=>{const date=o.created_at?new Date(o.created_at).toLocaleString('ar-EG'):'—';const status=o.status||'new';const transitions={new:[['preparing','بدء التحضير'],['cancelled','إلغاء']],preparing:[['ready','الطلب جاهز'],['cancelled','إلغاء']],ready:[['completed','تم التسليم']],completed:[],cancelled:[]};const buttons=(transitions[status]||[]).map(([s,label])=>`<button class="${s==='cancelled'?'danger':'primary'}" data-order="${safeText(o.id)}" data-status="${s}">${label}</button>`).join('');return `<article class="order ${status==='new'?'new':''}"><div class="orderfoot"><h3>طلب رقم #${safeText(o.daily_order_number ?? o.id)}</h3><span class="pill ${safeText(status)}">${statusNames[status]||safeText(status)}</span></div><div class="meta">${safeText(date)}</div><p><strong>العميل:</strong> ${safeText(o.customer_name||'—')}<br><strong>الهاتف:</strong> ${safeText(o.customer_phone||'—')}<br><strong>العنوان:</strong> ${safeText(o.customer_address||'—')}</p><div class="items">${safeText(itemSummary(o.items))}</div><div class="orderfoot"><span class="total">الإجمالي: ${money(o.total)}</span><div style="display:flex;gap:7px;flex-wrap:wrap">${buttons}</div></div></article>`}).join('')}
 
