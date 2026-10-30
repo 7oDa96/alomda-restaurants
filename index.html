@@ -615,8 +615,18 @@
                 <input id="customer-name" type="text" placeholder="اكتب اسمك" maxlength="100" autocomplete="name">
               </div>
               <div class="form-field">
-                <label for="customer-phone">رقم الهاتف</label>
-                <input id="customer-phone" type="tel" placeholder="رقم هاتفك" maxlength="30" autocomplete="tel">
+<label for="customer-phone">رقم الهاتف</label>
+<input
+    id="customer-phone"
+    type="tel"
+    placeholder="05XXXXXXXX"
+    maxlength="10"
+    minlength="10"
+    pattern="05[0-9]{8}"
+    inputmode="numeric"
+    autocomplete="tel"
+    required
+>
               </div>
               <div class="form-field">
                 <label for="customer-address">عنوان التوصيل</label>
