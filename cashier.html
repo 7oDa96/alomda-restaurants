@@ -146,7 +146,7 @@ async function showDashboard(){ $('loginBox').classList.add('hidden');$('dashboa
     'متصل بقاعدة البيانات. سيتم تحديث الطلبات الجديدة تلقائيًا.',
     'good'
   );
-}{message($('connection'),'جارٍ تحميل الطلبات...');const {data,error}=await client.from('orders').select('*').order('created_at',{ascending:false}).limit(200);if(error){message($('connection'),'تعذر تحميل الطلبات: '+error.message,'error');return}allOrders=data||[];allOrders.forEach(o=>lastSeen.add(String(o.id)));render();message($('connection'),'متصل بقاعدة البيانات. سيتم تحديث الطلبات الجديدة تلقائيًا.','good')}
+
 function subscribeOrders(){if(channel)client.removeChannel(channel);channel=client.channel('cashier-orders').on('postgres_changes',{event:'*',schema:'public',table:'orders'},payload=>{if(payload.eventType==='INSERT'&&payload.new){const id=String(payload.new.id);if(!lastSeen.has(id)){lastSeen.add(id);try{const ctx=new (window.AudioContext||window.webkitAudioContext)();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=880;gain.gain.value=.06;osc.start();osc.stop(ctx.currentTime+.18)}catch(e){} } }loadOrders()}).subscribe(state=>{if(state==='SUBSCRIBED')message($('connection'),'متصل — استقبال مباشر للطلبات مفعّل.','good');else if(state==='CHANNEL_ERROR'||state==='TIMED_OUT')message($('connection'),'تعذر الاتصال المباشر. تحقق من إعداد Realtime ثم اضغط تحديث.','error')})}
 function render() {
   const visible = allOrders.filter(
