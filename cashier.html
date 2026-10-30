@@ -198,8 +198,13 @@ async function showDashboard(){ $('loginBox').classList.add('hidden');$('dashboa
     from += pageSize;
   }
 
-  allOrders = orders;
-  allOrders.forEach(o => lastSeen.add(String(o.id)));
+allOrders = orders;
+
+if (viewMode === 'today' && allOrders.some(order => order.status === 'new')) {
+  startOrderAlarm();
+} else {
+  stopOrderAlarm();
+}  allOrders.forEach(o => lastSeen.add(String(o.id)));
 
   render();
 
