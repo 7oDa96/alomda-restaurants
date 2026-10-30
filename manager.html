@@ -95,11 +95,18 @@
         <p id="menuMessage" role="status"></p><div id="menuItems"></div>
       </section>
 
-      <section class="card hidden" id="ordersPanel">
-        <h2>الطلبات</h2>
-        <button id="refreshBtn" type="button">تحديث الطلبات</button>
-        <div id="orders"></div>
-      </section>
+     <section class="card hidden" id="ordersPanel">
+  <h2>الطلبات</h2>
+  <button id="refreshBtn" type="button">تحديث الطلبات</button>
+
+  <div class="grid">
+    <button id="todayView" type="button">طلبات اليوم</button>
+    <button id="archiveView" type="button" class="secondary">أرشيف الطلبات</button>
+    <input id="archiveDate" type="date" class="hidden">
+  </div>
+
+  <div id="orders"></div>
+</section>
 
       <section class="card hidden" id="reportsPanel">
         <h2>تقارير المبيعات</h2>
