@@ -148,9 +148,80 @@ async function showDashboard(){ $('loginBox').classList.add('hidden');$('dashboa
   );
 }{message($('connection'),'جارٍ تحميل الطلبات...');const {data,error}=await client.from('orders').select('*').order('created_at',{ascending:false}).limit(200);if(error){message($('connection'),'تعذر تحميل الطلبات: '+error.message,'error');return}allOrders=data||[];allOrders.forEach(o=>lastSeen.add(String(o.id)));render();message($('connection'),'متصل بقاعدة البيانات. سيتم تحديث الطلبات الجديدة تلقائيًا.','good')}
 function subscribeOrders(){if(channel)client.removeChannel(channel);channel=client.channel('cashier-orders').on('postgres_changes',{event:'*',schema:'public',table:'orders'},payload=>{if(payload.eventType==='INSERT'&&payload.new){const id=String(payload.new.id);if(!lastSeen.has(id)){lastSeen.add(id);try{const ctx=new (window.AudioContext||window.webkitAudioContext)();const osc=ctx.createOscillator();const gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=880;gain.gain.value=.06;osc.start();osc.stop(ctx.currentTime+.18)}catch(e){} } }loadOrders()}).subscribe(state=>{if(state==='SUBSCRIBED')message($('connection'),'متصل — استقبال مباشر للطلبات مفعّل.','good');else if(state==='CHANNEL_ERROR'||state==='TIMED_OUT')message($('connection'),'تعذر الاتصال المباشر. تحقق من إعداد Realtime ثم اضغط تحديث.','error')})}
-function render(){const visible=allOrders.filter(o=>filter==='all'||o.status===filter);$('countNew').textContent=allOrders.filter(o=>o.status==='new').length;$('countPreparing').textContent=allOrders.filter(o=>o.status==='preparing').length;$('countReady').textContent=allOrders.filter(o=>o.status==='ready').length;if(!visible.length){$('orders').innerHTML='<div class="empty" style="grid-column:1/-1">لا توجد طلبات في هذا التصنيف حاليًا.</div>';return}$('orders').innerHTML=visible.map(o=>{const date=o.created_at?new Date(o.created_at).toLocaleString('ar-EG'):'—';const status=o.status||'new';const transitions={new:[['preparing','بدء التحضير'],['cancelled','إلغاء']],preparing:[['ready','الطلب جاهز'],['cancelled','إلغاء']],ready:[['completed','تم التسليم']],completed:[],cancelled:[]};const buttons=(transitions[status]||[]).map(([s,label])=>`<button class="${s==='cancelled'?'danger':'primary'}" data-order="${safeText(o.id)}" data-status="${s}">${label}</button>`).join('');return `<article class="order ${status==='new'?'new':''}"><div class="orderfoot"><h3>طلب رقم #${safeText(o.daily_order_number ?? o.id)}</h3><span class="pill ${safeText(status)}">${statusNames[status]||safeText(status)}</span></div><div class="meta">${safeText(date)}</div><p><strong>العميل:</strong> ${safeText(o.customer_name||'—')}<br><strong>الهاتف:</strong> ${safeText(o.customer_phone||'—')}<br><strong>العنوان:</strong> ${safeText(o.customer_address||'—')}</p><div class="items">${safeText(itemSummary(o.items))}</div><div class="orderfoot"><span class="total">الإجمالي: ${money(o.total)}</span><div style="display:flex;gap:7px;flex-wrap:wrap">${buttons}</div></div></article>`}).join('')}
+function render() {
+  const visible = allOrders.filter(
+    o => filter === 'all' || o.status === filter
+  );
 
- 
+  $('countNew').textContent =
+    allOrders.filter(o => o.status === 'new').length;
+
+  $('countPreparing').textContent =
+    allOrders.filter(o => o.status === 'preparing').length;
+
+  $('countReady').textContent =
+    allOrders.filter(o => o.status === 'ready').length;
+
+  if (!visible.length) {
+    $('orders').innerHTML =
+      '<div class="empty" style="grid-column:1/-1">لا توجد طلبات في هذا التاريخ أو التصنيف.</div>';
+    return;
+  }
+
+  $('orders').innerHTML = visible.map(o => {
+    const date = o.created_at
+      ? new Date(o.created_at).toLocaleString('ar-EG', {
+          timeZone: 'Asia/Riyadh'
+        })
+      : '—';
+
+    const status = o.status || 'new';
+
+    const transitions = {
+      new: [['preparing', 'بدء التحضير'], ['cancelled', 'إلغاء']],
+      preparing: [['ready', 'الطلب جاهز'], ['cancelled', 'إلغاء']],
+      ready: [['completed', 'تم التسليم']],
+      completed: [],
+      cancelled: []
+    };
+
+    const buttons = viewMode === 'today'
+      ? (transitions[status] || []).map(([s, label]) =>
+          `<button class="${s === 'cancelled' ? 'danger' : 'primary'}"
+            data-order="${safeText(o.id)}"
+            data-status="${s}">${label}</button>`
+        ).join('')
+      : '<span class="small">طلب مؤرشف — للعرض فقط</span>';
+
+    return `
+      <article class="order ${status === 'new' ? 'new' : ''}">
+        <div class="orderfoot">
+          <h3>طلب رقم #${safeText(o.daily_order_number ?? o.id)}</h3>
+          <span class="pill ${safeText(status)}">
+            ${statusNames[status] || safeText(status)}
+          </span>
+        </div>
+
+        <div class="meta">${safeText(date)}</div>
+
+        <p>
+          <strong>العميل:</strong> ${safeText(o.customer_name || '—')}<br>
+          <strong>الهاتف:</strong> ${safeText(o.customer_phone || '—')}<br>
+          <strong>العنوان:</strong> ${safeText(o.customer_address || '—')}
+        </p>
+
+        <div class="items">${safeText(itemSummary(o.items))}</div>
+
+        <div class="orderfoot">
+          <span class="total">الإجمالي: ${money(o.total)}</span>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            ${buttons}
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+} 
 let menuItems = [];
 
 async function loadMenuItems() {
