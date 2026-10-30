@@ -281,7 +281,43 @@ $('menuItems').addEventListener('click', async event => {
 
   $('loginForm').addEventListener('submit',async e=>{e.preventDefault();const email=$('email').value.trim(),password=$('password').value;message($('loginMsg'),'جارٍ تسجيل الدخول...');const {error}=await client.auth.signInWithPassword({email,password});if(error){message($('loginMsg'),'تعذر تسجيل الدخول. تأكد من بيانات الحساب. ('+error.message+')','error');return}const {data}=await client.auth.getUser();currentUser=data.user;try{await showDashboard()}catch(err){message($('loginMsg'),err.message,'error');$('loginBox').classList.remove('hidden');$('dashboard').classList.add('hidden')}});
 $('filters').addEventListener('click',e=>{const b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('active',x===b));render()});
-$('orders').addEventListener('click', async e => {
+$('todayView').addEventListener('click', async () => {
+  viewMode = 'today';
+
+  $('todayView').classList.add('active');
+  $('archiveView').classList.remove('active');
+  $('archiveDate').classList.add('hidden');
+
+  await loadOrders();
+});
+
+$('archiveView').addEventListener('click', async () => {
+  viewMode = 'archive';
+
+  const today = riyadhDateKey();
+  const [year, month, day] = today.split('-').map(Number);
+  const yesterday = new Date(Date.UTC(year, month - 1, day - 1))
+    .toISOString()
+    .slice(0, 10);
+
+  $('archiveDate').max = yesterday;
+
+  if (!$('archiveDate').value || $('archiveDate').value >= today) {
+    $('archiveDate').value = yesterday;
+  }
+
+  $('todayView').classList.remove('active');
+  $('archiveView').classList.add('active');
+  $('archiveDate').classList.remove('hidden');
+
+  await loadOrders();
+});
+
+$('archiveDate').addEventListener('change', async () => {
+  if (viewMode === 'archive' && $('archiveDate').value) {
+    await loadOrders();
+  }
+});$('orders').addEventListener('click', async e => {
   const b = e.target.closest('button[data-order]');
   if (!b) return;
 
