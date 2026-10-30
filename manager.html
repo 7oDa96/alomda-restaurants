@@ -376,28 +376,90 @@ if (cashierIds.length) {
       if (error) { setText('menuMessage', 'تعذر تحميل المنيو. راجع سياسة قراءة المدير: ' + error.message); return; }
       menuData = data || []; renderMenu();
     }
-    function renderMenu() {
-      const box = $('menuItems'); box.replaceChildren();
-      const term = $('menuSearch').value.trim().toLowerCase();
-      const filtered = menuData.filter(item => {
-        const matchesText = String(item.name || '').toLowerCase().includes(term) || String(item.category || '').toLowerCase().includes(term);
-        const matchesStatus = menuFilter === 'all' || (menuFilter === 'available' && item.is_available === true) || (menuFilter === 'unavailable' && item.is_available !== true);
-        return matchesText && matchesStatus;
+  function renderMenu() {
+  const box = $('menuItems');
+  box.replaceChildren();
+
+  const term = $('menuSearch').value.trim().toLowerCase();
+
+  const filtered = menuData.filter(item => {
+    const matchesText =
+      String(item.name || '').toLowerCase().includes(term) ||
+      String(item.category || '').toLowerCase().includes(term);
+
+    const matchesStatus =
+      menuFilter === 'all' ||
+      (menuFilter === 'available' && item.is_available === true) ||
+      (menuFilter === 'unavailable' && item.is_available !== true);
+
+    return matchesText && matchesStatus;
+  });
+
+  setText('menuMessage', 'عدد الأصناف: ' + filtered.length + ' من ' + menuData.length);
+
+  if (!filtered.length) {
+    box.textContent = 'لا توجد أصناف مطابقة.';
+    return;
+  }
+
+  const groups = {};
+
+  filtered.forEach(item => {
+    const category = item.category || 'بدون قسم';
+    if (!groups[category]) groups[category] = [];
+    groups[category].push(item);
+  });
+
+  Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0], 'ar'))
+    .forEach(([category, items]) => {
+      const section = document.createElement('details');
+      section.className = 'menu-item';
+      section.open = Boolean(term);
+
+      const heading = document.createElement('summary');
+      heading.style.cursor = 'pointer';
+      heading.style.fontWeight = 'bold';
+      heading.style.padding = '5px';
+      heading.textContent = `${category} (${items.length} أصناف)`;
+
+      section.appendChild(heading);
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'order';
+
+        const title = document.createElement('h3');
+        title.textContent = item.name || 'بدون اسم';
+
+        const price = document.createElement('p');
+        price.textContent = 'السعر: ' + formatPrice(item);
+
+        const status = document.createElement('span');
+        status.className = 'badge' + (item.is_available ? '' : ' off');
+        status.textContent = item.is_available ? 'متاح للبيع' : 'غير متاح';
+
+        const actions = document.createElement('div');
+        actions.className = 'menu-item actions';
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.textContent = 'تعديل';
+        editBtn.addEventListener('click', () => beginEdit(item));
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = item.is_available ? 'danger' : 'success';
+        toggleBtn.textContent = item.is_available ? 'إيقاف البيع' : 'إعادة التفعيل';
+        toggleBtn.addEventListener('click', () => toggleAvailability(item));
+
+        actions.append(editBtn, toggleBtn);
+        card.append(title, price, status, actions);
+        section.appendChild(card);
       });
-      setText('menuMessage', 'عدد الأصناف: ' + filtered.length + ' من ' + menuData.length);
-      if (!filtered.length) { box.textContent = 'لا توجد أصناف مطابقة.'; return; }
-      filtered.forEach(item => {
-        const card = document.createElement('article'); card.className = 'menu-item';
-        const title = document.createElement('h3'); title.textContent = item.name || 'بدون اسم';
-        const category = document.createElement('p'); category.textContent = 'الفئة: ' + (item.category || 'غير محددة');
-        const price = document.createElement('p'); price.textContent = 'السعر: ' + formatPrice(item);
-        const status = document.createElement('span'); status.className = 'badge' + (item.is_available ? '' : ' off'); status.textContent = item.is_available ? 'متاح للبيع' : 'غير متاح';
-        const actions = document.createElement('div'); actions.className = 'actions';
-        const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.textContent = 'تعديل'; editBtn.addEventListener('click', () => beginEdit(item));
-        const toggleBtn = document.createElement('button'); toggleBtn.type = 'button'; toggleBtn.className = item.is_available ? 'danger' : 'success'; toggleBtn.textContent = item.is_available ? 'إيقاف البيع' : 'إعادة التفعيل'; toggleBtn.addEventListener('click', () => toggleAvailability(item));
-        actions.append(editBtn, toggleBtn); card.append(title, category, price, status, actions); box.appendChild(card);
-      });
-    }
+
+      box.appendChild(section);
+    });
+}
     function beginEdit(item) {
       editingItem = item; $('itemId').value = item.id; $('itemName').value = item.name || ''; $('itemCategory').value = item.category || '';
       $('itemPrice').value = item.price ?? ''; $('itemMin').value = item.min_price ?? ''; $('itemMax').value = item.max_price ?? '';
