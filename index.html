@@ -305,7 +305,23 @@
       gap: 6px;
       margin: 14px 0;
     }
+.menu-top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
+.menu-top-actions #menu-categories {
+  flex: 1;
+  min-width: 200px;
+}
+
+#cart-shortcut {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
     .category-button {
       padding: 9px 14px;
       border-radius: 20px;
@@ -601,7 +617,12 @@
             <p>تصفح الأصناف، اختار طلبك، وضيفه لسلة المشتريات.</p>
 
             <div id="menu-message" role="status" aria-live="polite">جاري تجهيز المنيو...</div>
-            <div id="menu-categories" aria-label="أقسام المنيو"></div>
+            <div class="menu-top-actions">
+  <div id="menu-categories" aria-label="أقسام المنيو"></div>
+  <button id="cart-shortcut" type="button" class="btn btn-red">
+    🛒 السلة (<span id="cart-count">0</span>)
+  </button>
+</div>
             <div id="menu-items"></div>
 
             <div id="cart-section">
@@ -721,6 +742,8 @@
     const orderButton = document.getElementById("submit-order");
     const checkoutNext = document.getElementById("checkout-next");
 const checkoutDetails = document.getElementById("checkout-details");
+    const cartShortcut = document.getElementById("cart-shortcut");
+const cartCount = document.getElementById("cart-count");
     const orderMessage = document.getElementById("order-message");
     const cart = new Map();
 
@@ -805,6 +828,10 @@ const checkoutDetails = document.getElementById("checkout-details");
   });
 
   totalBox.textContent = `الإجمالي: ${Number(total.toFixed(2))} ريال`;
+      cartCount.textContent = [...cart.values()].reduce(
+  (sum, entry) => sum + entry.quantity,
+  0
+);
   orderButton.disabled = cart.size === 0;
   checkoutNext.disabled = cart.size === 0;
 }
@@ -997,6 +1024,12 @@ checkoutNext.addEventListener("click", () => {
   checkoutNext.hidden = true;
 
   checkoutDetails.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+});
+   cartShortcut.addEventListener("click", () => {
+  document.getElementById("cart-section").scrollIntoView({
     behavior: "smooth",
     block: "start"
   });
