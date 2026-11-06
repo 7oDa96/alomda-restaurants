@@ -1045,9 +1045,8 @@ if (firstButton) {
       message.textContent =
         "تعذر تحميل المنيو. تحقق من الاتصال بقاعدة البيانات وصلاحيات قراءة الأصناف.";
     }
-// الانتقال إلى بيانات التوصيل
-checkoutNext.disabled = cart.size === 0;
-  cartShortcut.addEventListener("click", () => {
+
+    cartShortcut.addEventListener("click", () => {
   document.getElementById("cart-section").classList.add("cart-open");
 });
     document.getElementById("close-cart").addEventListener("click", () => {
