@@ -630,11 +630,8 @@
               <div id="cart-items">السلة فارغة حاليًا.</div>
               <p id="cart-total">الإجمالي المبدئي: 0 ريال</p>
 
-            <button id="checkout-next" type="button" class="btn btn-red" disabled>
-  متابعة لإدخال بيانات التوصيل
-</button>
 
-<div id="checkout-details" hidden>
+<div id="checkout-details">
   <h3>بيانات التوصيل</h3>
 
   <div class="form-field">
@@ -740,8 +737,6 @@
     const cartBox = document.getElementById("cart-items");
     const totalBox = document.getElementById("cart-total");
     const orderButton = document.getElementById("submit-order");
-    const checkoutNext = document.getElementById("checkout-next");
-const checkoutDetails = document.getElementById("checkout-details");
     const cartShortcut = document.getElementById("cart-shortcut");
 const cartCount = document.getElementById("cart-count");
     const orderMessage = document.getElementById("order-message");
@@ -1017,17 +1012,7 @@ if (firstButton) {
         "تعذر تحميل المنيو. تحقق من الاتصال بقاعدة البيانات وصلاحيات قراءة الأصناف.";
     }
 // الانتقال إلى بيانات التوصيل
-checkoutNext.addEventListener("click", () => {
-  if (cart.size === 0) return;
-
-  checkoutDetails.hidden = false;
-  checkoutNext.hidden = true;
-
-  checkoutDetails.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-});
+checkoutNext.disabled = cart.size === 0;
    cartShortcut.addEventListener("click", () => {
   document.getElementById("cart-section").scrollIntoView({
     behavior: "smooth",
