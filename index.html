@@ -609,34 +609,44 @@
               <div id="cart-items">السلة فارغة حاليًا.</div>
               <p id="cart-total">الإجمالي المبدئي: 0 ريال</p>
 
-              <h3>بيانات التوصيل</h3>
-              <div class="form-field">
-                <label for="customer-name">الاسم</label>
-                <input id="customer-name" type="text" placeholder="اكتب اسمك" maxlength="100" autocomplete="name">
-              </div>
-              <div class="form-field">
-<label for="customer-phone">رقم الهاتف</label>
-<input
-    id="customer-phone"
-    type="tel"
-    placeholder="05XXXXXXXX"
-    maxlength="10"
-    minlength="10"
-    pattern="05[0-9]{8}"
-    inputmode="numeric"
-    autocomplete="tel"
-    required
->
-              </div>
-              <div class="form-field">
-                <label for="customer-address">عنوان التوصيل</label>
-                <textarea id="customer-address" placeholder="المدينة والشارع ورقم المبنى" maxlength="300" autocomplete="street-address"></textarea>
-              </div>
+            <button id="checkout-next" type="button" class="btn btn-red" disabled>
+  متابعة لإدخال بيانات التوصيل
+</button>
 
-              <button id="submit-order" type="button" class="btn btn-red" disabled>
-                تأكيد الطلب
-              </button>
-              <p id="order-message" role="status" aria-live="polite"></p>
+<div id="checkout-details" hidden>
+  <h3>بيانات التوصيل</h3>
+
+  <div class="form-field">
+    <label for="customer-name">الاسم</label>
+    <input id="customer-name" type="text" placeholder="اكتب اسمك" maxlength="100" autocomplete="name">
+  </div>
+
+  <div class="form-field">
+    <label for="customer-phone">رقم الهاتف</label>
+    <input
+      id="customer-phone"
+      type="tel"
+      placeholder="05XXXXXXXX"
+      maxlength="10"
+      minlength="10"
+      pattern="05[0-9]{8}"
+      inputmode="numeric"
+      autocomplete="tel"
+      required
+    >
+  </div>
+
+  <div class="form-field">
+    <label for="customer-address">عنوان التوصيل</label>
+    <textarea id="customer-address" placeholder="المدينة والشارع ورقم المبنى" maxlength="300" autocomplete="street-address"></textarea>
+  </div>
+
+  <button id="submit-order" type="button" class="btn btn-red" disabled>
+    تأكيد الطلب
+  </button>
+
+  <p id="order-message" role="status" aria-live="polite"></p>
+</div>
             </div>
           </div>
 
@@ -709,6 +719,8 @@
     const cartBox = document.getElementById("cart-items");
     const totalBox = document.getElementById("cart-total");
     const orderButton = document.getElementById("submit-order");
+    const checkoutNext = document.getElementById("checkout-next");
+const checkoutDetails = document.getElementById("checkout-details");
     const orderMessage = document.getElementById("order-message");
     const cart = new Map();
 
@@ -794,6 +806,7 @@
 
   totalBox.textContent = `الإجمالي: ${Number(total.toFixed(2))} ريال`;
   orderButton.disabled = cart.size === 0;
+  checkoutNext.disabled = cart.size === 0;
 }
     function addToCart(item, selectedPrice = null) {
   const existing = cart.get(item.id);
@@ -976,7 +989,18 @@ if (firstButton) {
       message.textContent =
         "تعذر تحميل المنيو. تحقق من الاتصال بقاعدة البيانات وصلاحيات قراءة الأصناف.";
     }
+// الانتقال إلى بيانات التوصيل
+checkoutNext.addEventListener("click", () => {
+  if (cart.size === 0) return;
 
+  checkoutDetails.hidden = false;
+  checkoutNext.hidden = true;
+
+  checkoutDetails.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+});
     // تأكيد الطلب
     orderButton.addEventListener("click", async () => {
       const name = document.getElementById("customer-name").value.trim();
