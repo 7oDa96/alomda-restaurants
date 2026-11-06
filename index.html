@@ -319,8 +319,13 @@
 }
 
 #cart-shortcut {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 30;
   white-space: nowrap;
   flex-shrink: 0;
+  box-shadow: 0 8px 24px #0003;
 }
     .category-button {
       padding: 9px 14px;
@@ -374,7 +379,34 @@
       border: 2px solid #eadcc8;
       border-radius: 16px;
     }
+#cart-section {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 30px);
+  max-width: 650px;
+  max-height: 85vh;
+  overflow-y: auto;
+  z-index: 1001;
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.55);
+}
 
+#cart-section.cart-open {
+  display: block;
+}
+
+#close-cart {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  border: none;
+  border-radius: 50%;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 18px;
+}
     #cart-items { overflow-wrap: anywhere; }
 
     .cart-row {
@@ -627,6 +659,9 @@
 
             <div id="cart-section">
               <h2>🛒 سلة مشترياتك</h2>
+              <button id="close-cart" type="button" aria-label="إغلاق السلة">
+  ✕
+</button>
               <div id="cart-items">السلة فارغة حاليًا.</div>
               <p id="cart-total">الإجمالي المبدئي: 0 ريال</p>
 
@@ -1013,11 +1048,11 @@ if (firstButton) {
     }
 // الانتقال إلى بيانات التوصيل
 checkoutNext.disabled = cart.size === 0;
-   cartShortcut.addEventListener("click", () => {
-  document.getElementById("cart-section").scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+  cartShortcut.addEventListener("click", () => {
+  document.getElementById("cart-section").classList.add("cart-open");
+});
+    document.getElementById("close-cart").addEventListener("click", () => {
+  document.getElementById("cart-section").classList.remove("cart-open");
 });
     // تأكيد الطلب
     orderButton.addEventListener("click", async () => {
