@@ -896,16 +896,54 @@ if (item.price != null) {
   price.textContent = "السعر يُؤكد عند الطلب";
 }
 
-const addButton = document.createElement("button");
-addButton.type = "button";
-addButton.className = "add-button";
-addButton.textContent = "أضف للسلة";
+const controls = document.createElement("div");
+controls.className = "cart-controls";
 
-addButton.addEventListener("click", () => {
+const minus = document.createElement("button");
+minus.type = "button";
+minus.className = "quantity-button";
+minus.textContent = "−";
+
+const count = document.createElement("span");
+
+const plus = document.createElement("button");
+plus.type = "button";
+plus.className = "quantity-button";
+plus.textContent = "+";
+
+function updateCount() {
+  const current = cart.get(item.id);
+  count.textContent = String(current ? current.quantity : 0);
+  minus.disabled = !current;
+  plus.disabled = Boolean(current && current.quantity >= 50);
+}
+
+plus.addEventListener("click", () => {
   addToCart(item);
+  updateCount();
 });
 
-card.append(name, price, addButton);
+minus.addEventListener("click", () => {
+  const current = cart.get(item.id);
+  if (!current) return;
+
+  if (current.quantity <= 1) {
+    cart.delete(item.id);
+  } else {
+    cart.set(item.id, {
+      ...current,
+      quantity: current.quantity - 1
+    });
+  }
+
+  renderCart();
+  updateCount();
+});
+
+controls.append(minus, count, plus);
+updateCount();
+
+card.append(name, price, controls);
 itemsBox.append(card);
         });
       }
