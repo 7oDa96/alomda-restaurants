@@ -773,6 +773,7 @@
     const totalBox = document.getElementById("cart-total");
     const orderButton = document.getElementById("submit-order");
     const cartShortcut = document.getElementById("cart-shortcut");
+    cartShortcut.style.display = "none";
 const cartCount = document.getElementById("cart-count");
     const orderMessage = document.getElementById("order-message");
     const cart = new Map();
@@ -858,6 +859,7 @@ const cartCount = document.getElementById("cart-count");
   });
 
   totalBox.textContent = `الإجمالي: ${Number(total.toFixed(2))} ريال`;
+     cartShortcut.style.display = cart.size > 0 ? "block" : "none";
       cartCount.textContent = [...cart.values()].reduce(
   (sum, entry) => sum + entry.quantity,
   0
