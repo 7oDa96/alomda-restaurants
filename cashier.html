@@ -76,26 +76,35 @@ let currentUser=null, currentRole=null, allOrders=[], filter='all', channel=null
 let audioContext = null;
 let alarmTimer = null;
 
-function unlockAudio() {
+
+async function unlockAudio() {
   try {
     if (!audioContext) {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+
       if (!AudioContextClass) return;
 
       audioContext = new AudioContextClass();
     }
 
-    if (audioContext.state === 'suspended') {
-      audioContext.resume();
+    if (audioContext.state !== 'running') {
+      await audioContext.resume();
     }
 
-    if (allOrders.some(order => order.status === 'new') && viewMode === 'today') {
+    if (
+      audioContext.state === 'running' &&
+      allOrders.some(order => order.status === 'new') &&
+      viewMode === 'today'
+    ) {
       startOrderAlarm();
     }
+
   } catch (error) {
     console.warn('Audio unavailable:', error);
   }
 }
+
 
 function playOrderBeep() {
   if (!audioContext || audioContext.state !== 'running') return;
