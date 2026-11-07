@@ -162,7 +162,99 @@ function riyadhDayBounds(dateKey) {
   };
 }
 function itemSummary(items){if(Array.isArray(items))return items.map(i=>`${i.name||i.title||i.product_name||'صنف'} × ${i.quantity||i.qty||1}`).join('\n');if(items&&typeof items==='object')return JSON.stringify(items,null,2);return String(items||'لا توجد تفاصيل')}
-async function checkProfile(){const {data,error}=await client.from('staff_profiles').select('display_name,role').eq('user_id',currentUser.id).maybeSingle();if(error||!data||!['cashier','manager'].includes(data.role)){await client.auth.signOut();currentUser=null;throw new Error('هذا الحساب غير مضاف كموظف معتمد. راجع المدير.')}currentRole=data.role;$('who').textContent=(data.display_name||currentUser.email)+' — '+(currentRole==='manager'?'مدير':'كاشير');$('who').classList.remove('hidden');$('roleText').textContent='الدخول الحالي: '+(currentRole==='manager'?'مدير':'كاشير')+' | تعديل حالة الطلب فقط.'}
+
+async function checkProfile() {
+  const { data, error } = await client
+    .from('staff_profiles')
+    .select('display_name, role, is_active')
+    .eq('user_id', currentUser.id)
+    .maybeSingle();
+
+  if (
+    error ||
+    !data ||
+    !['cashier', 'manager'].includes(data.role)
+  ) {
+    await client.auth.signOut();
+    currentUser = null;
+    throw new Error('هذا الحساب غير مضاف كموظف معتمد. راجع المدير.');
+  }
+
+  if (data.is_active !== true) {
+    await client.auth.signOut();
+    currentUser = null;
+    throw new Error('تم إيقاف هذا الحساب. يرجى مراجعة مدير المطعم.');
+  }
+
+  currentRole = data.role;
+
+  $('who').textContent =
+    (data.display_name || currentUser.email) +
+    ' — ' +
+    (currentRole === 'manager' ? 'مدير' : 'كاشير');
+
+  $('who').classList.remove('hidden');
+
+  $('roleText').textContent =
+    'الدخول الحالي: ' +
+    (currentRole === 'manager' ? 'مدير' : 'كاشير') +
+    ' | تعديل حالة الطلب فقط.';
+}
+  let staffCheckTimer = null;
+let staffCheckRunning = false;
+
+async function checkStaffActivity() {
+  if (!currentUser || staffCheckRunning) return;
+
+  staffCheckRunning = true;
+
+  try {
+    const { data, error } = await client
+      .from('staff_profiles')
+      .select('is_active')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    // لا نسجل الخروج بسبب خطأ اتصال مؤقت.
+    if (error) {
+      console.error('Staff activity check failed:', error.message);
+      return;
+    }
+
+    if (!data || data.is_active !== true) {
+      if (staffCheckTimer) {
+        clearInterval(staffCheckTimer);
+        staffCheckTimer = null;
+      }
+
+      stopOrderAlarm();
+
+      if (channel) {
+        await client.removeChannel(channel);
+        channel = null;
+      }
+
+      await client.auth.signOut();
+
+      currentUser = null;
+      currentRole = null;
+
+      $('dashboard').classList.add('hidden');
+      $('loginBox').classList.remove('hidden');
+      $('who').classList.add('hidden');
+
+      message(
+        $('loginMsg'),
+        'تم إيقاف هذا الحساب بواسطة مدير المطعم.',
+        'error'
+      );
+    }
+  } catch (err) {
+    console.error('Staff activity check error:', err);
+  } finally {
+    staffCheckRunning = false;
+  }
+}
 async function showDashboard(){ $('loginBox').classList.add('hidden');$('dashboard').classList.remove('hidden');await checkProfile();await loadOrders();await loadMenuItems();subscribeOrders()}async function loadOrders() {
   message($('connection'), 'جارٍ تحميل الطلبات...');
 
@@ -533,7 +625,48 @@ $('archiveDate').addEventListener('change', async () => {
   }
 });
 $('refresh').addEventListener('click',loadOrders);
-$('logout').addEventListener('click',async()=>{if(channel)await client.removeChannel(channel);channel=null;await client.auth.signOut();currentUser=null;currentRole=null;$('dashboard').classList.add('hidden');$('loginBox').classList.remove('hidden');$('who').classList.add('hidden');$('password').value=''});
-(async()=>{const {data}=await client.auth.getSession();if(data.session){const {data:u}=await client.auth.getUser();currentUser=u.user;try{await showDashboard()}catch(e){message($('loginMsg'),e.message,'error');$('loginBox').classList.remove('hidden');$('dashboard').classList.add('hidden')}}})();
+$('logout').addEventListener('click', async () => {
+  if (staffCheckTimer) {
+    clearInterval(staffCheckTimer);
+    staffCheckTimer = null;
+  }
+
+  stopOrderAlarm();
+
+  if (channel) {
+    await client.removeChannel(channel);
+    channel = null;
+  }
+
+  await client.auth.signOut();
+
+  currentUser = null;
+  currentRole = null;
+
+  $('dashboard').classList.add('hidden');
+  $('loginBox').classList.remove('hidden');
+  $('who').classList.add('hidden');
+  $('password').value = '';
+});
+(async () => {
+  try {
+    const { data } = await client.auth.getSession();
+
+    if (data.session) {
+      const { data: u } = await client.auth.getUser();
+      currentUser = u.user;
+
+      await showDashboard();
+
+      if (staffCheckTimer) clearInterval(staffCheckTimer);
+
+      staffCheckTimer = setInterval(checkStaffActivity, 30000);
+    }
+  } catch (e) {
+    message($('loginMsg'), e.message, 'error');
+    $('loginBox').classList.remove('hidden');
+    $('dashboard').classList.add('hidden');
+  }
+})();
 </script>
 </body></html>
