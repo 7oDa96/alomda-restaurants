@@ -425,12 +425,39 @@ button:disabled {
 // Public project URL and publishable key. Never place service_role/secret keys in this file.
 const SUPABASE_URL = 'https://gbetyfaobnwoqajjdcls.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n';
-let client = window.supabase.createClient(
+
+const FISH_SUPABASE_URL = 'https://lyjxaltnznuoxnnpnxmn.supabase.co';
+const FISH_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_O2P2rY_tvSUzZbBKRdWrpA_uZO4Tfa7';
+
+const alomdaDb = window.supabase.createClient(
   SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
+  SUPABASE_PUBLISHABLE_KEY,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false,
+      storageKey: 'alomda-cashier-auth'
+    }
+  }
 );
 
+const fishDb = window.supabase.createClient(
+  FISH_SUPABASE_URL,
+  FISH_SUPABASE_PUBLISHABLE_KEY,
+  {
+    auth: {
+  persistSession: true,
+  autoRefreshToken: true,
+  detectSessionInUrl: false,
+  storageKey: 'fish-cashier-auth'
+}
+  }
+);
+
+let client = alomdaDb;
 let activeRestaurant = 'alomda';
+  const RESTAURANT_DEVICE_KEY = 'cashier-device-restaurant';
 const $ = id => document.getElementById(id);
 let currentUser=null, currentRole=null, allOrders=[], filter='all', channel=null, lastSeen=new Set(), viewMode='today';const statusNames={new:'جديد',preparing:'قيد التحضير',ready:'جاهز',completed:'مكتمل',cancelled:'ملغي'};
 
@@ -958,25 +985,55 @@ $('loginForm').addEventListener('submit', async e => {
 
   message($('loginMsg'), 'جارٍ تسجيل الدخول...');
 
-  const { error } = await client.auth.signInWithPassword({
-    email,
-    password
-  });
+  let loginClient = null;
+  let loginError = null;
+  let restaurant = '';
 
-  if (error) {
+  const projects = [
+  { db: alomdaDb, name: 'alomda' },
+  { db: fishDb, name: 'fish' }
+];
+
+  for (const project of projects) {
+    const { error } = await project.db.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (!error) {
+      loginClient = project.db;
+      restaurant = project.name;
+      break;
+    }
+
+    loginError = error;
+  }
+
+  if (!loginClient) {
     message(
       $('loginMsg'),
-      'تعذر تسجيل الدخول. تأكد من بيانات الحساب. (' + error.message + ')',
+      'تعذر تسجيل الدخول. تأكد من بيانات الحساب.',
       'error'
     );
     return;
   }
+
+  client = loginClient;
+activeRestaurant = restaurant;
+
+localStorage.setItem(RESTAURANT_DEVICE_KEY, restaurant);
 
   const { data } = await client.auth.getUser();
   currentUser = data.user;
 
   try {
     await showDashboard();
+
+    $('restaurantName').textContent =
+      restaurant === 'fish' ? '🐟 أسماك العمدة' : '🍽️ مطعم العمدة';
+
+    $('restaurantSubtitle').textContent =
+      'لوحة الكاشير وإدارة الطلبات';
 
     if (staffCheckTimer) {
       clearInterval(staffCheckTimer);
@@ -989,7 +1046,8 @@ $('loginForm').addEventListener('submit', async e => {
     $('loginBox').classList.remove('hidden');
     $('dashboard').classList.add('hidden');
   }
-});$('filters').addEventListener('click',e=>{const b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('active',x===b));render()});
+});
+  $('filters').addEventListener('click',e=>{const b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('active',x===b));render()});
 $('todayView').addEventListener('click', async () => {
   viewMode = 'today';
 
@@ -1078,6 +1136,8 @@ $('logout').addEventListener('click', async () => {
   }
 
   await client.auth.signOut();
+client = alomdaDb;
+activeRestaurant = 'alomda';
 
   currentUser = null;
   currentRole = null;
@@ -1089,18 +1149,54 @@ $('logout').addEventListener('click', async () => {
 });
 (async () => {
   try {
-    const { data } = await client.auth.getSession();
+    let restoredClient = null;
+    let restaurant = '';
 
-    if (data.session) {
-      const { data: u } = await client.auth.getUser();
-      currentUser = u.user;
+    const savedRestaurant = localStorage.getItem(RESTAURANT_DEVICE_KEY);
 
-      await showDashboard();
+const projects = savedRestaurant === 'fish'
+  ? [{ db: fishDb, name: 'fish' }]
+  : savedRestaurant === 'alomda'
+    ? [{ db: alomdaDb, name: 'alomda' }]
+    : [];
 
-      if (staffCheckTimer) clearInterval(staffCheckTimer);
+    for (const project of projects) {
+      const { data, error } = await project.db.auth.getSession();
 
-      staffCheckTimer = setInterval(checkStaffActivity, 30000);
+      if (error) {
+        console.error('Session restore error:', error.message);
+        continue;
+      }
+
+      if (data.session) {
+        restoredClient = project.db;
+        restaurant = project.name;
+        break;
+      }
     }
+
+    if (!restoredClient) return;
+
+    client = restoredClient;
+    activeRestaurant = restaurant;
+
+    const { data: u } = await client.auth.getUser();
+    currentUser = u.user;
+
+    if (!currentUser) return;
+
+    await showDashboard();
+
+    $('restaurantName').textContent =
+      restaurant === 'fish' ? '🐟 أسماك العمدة' : '🍽️ مطعم العمدة';
+
+    $('restaurantSubtitle').textContent =
+      'لوحة الكاشير وإدارة الطلبات';
+
+    if (staffCheckTimer) clearInterval(staffCheckTimer);
+
+    staffCheckTimer = setInterval(checkStaffActivity, 30000);
+
   } catch (e) {
     message($('loginMsg'), e.message, 'error');
     $('loginBox').classList.remove('hidden');
