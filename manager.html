@@ -58,11 +58,12 @@
         <p id="message" role="status"></p>
       </div>
 
-      <div class="tabs">
-        <button type="button" data-tab="menuPanel">إدارة المنيو</button>
-        <button type="button" data-tab="ordersPanel">الطلبات</button>
-        <button type="button" data-tab="reportsPanel">تقارير المبيعات</button>
-      </div>
+     <div class="tabs">
+  <button type="button" data-tab="menuPanel">إدارة المنيو</button>
+  <button type="button" data-tab="ordersPanel">الطلبات</button>
+  <button type="button" data-tab="reportsPanel">تقارير المبيعات</button>
+  <button type="button" data-tab="cashiersPanel">إدارة الكاشير</button>
+</div>
 
       <section class="card" id="menuPanel">
         <h2>إدارة المنيو</h2>
@@ -95,6 +96,28 @@
         <p id="menuMessage" role="status"></p><div id="menuItems"></div>
       </section>
 
+      <section class="card hidden" id="cashiersPanel">
+  <h2>إدارة الكاشير</h2>
+  <p class="muted">إضافة حسابات الكاشير وتعديل أسمائهم وإيقافها أو إعادة تفعيلها.</p>
+
+  <h3>إضافة كاشير جديد</h3>
+
+  <form id="cashierForm">
+    <input id="cashierName" type="text" placeholder="اسم الكاشير" required>
+    <input id="cashierEmail" type="email" placeholder="البريد الإلكتروني" required>
+    <input id="cashierPassword" type="password" placeholder="كلمة المرور" minlength="8" required>
+    <button id="addCashierBtn" type="submit">إضافة الكاشير</button>
+  </form>
+
+  <p id="cashierMessage" role="status"></p>
+
+  <hr>
+
+  <h3>حسابات الكاشير</h3>
+  <button id="refreshCashiersBtn" type="button" class="secondary">تحديث الحسابات</button>
+
+  <div id="cashierList"></div>
+</section>
      <section class="card hidden" id="ordersPanel">
   <h2>الطلبات</h2>
   <button id="refreshBtn" type="button">تحديث الطلبات</button>
@@ -138,6 +161,35 @@
     const SUPABASE_KEY = 'sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n';
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const $ = id => document.getElementById(id);
+    async function manageCashiers(payload) {
+  const { data: sessionData } = await db.auth.getSession();
+
+  const token = sessionData.session?.access_token;
+
+  if (!token) {
+    throw new Error('انتهت جلسة تسجيل الدخول. سجّل الدخول مرة أخرى.');
+  }
+
+  const { data, error } = await db.functions.invoke(
+    'manage-cashiers',
+    {
+      body: payload,
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  if (error) {
+    throw new Error(data?.error || error.message);
+  }
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return data;
+}
 let menuData = [], menuFilter = 'all', editingItem = null, viewMode = 'today';
     function setText(id, text) { $(id).textContent = text; }
     function showLogin(text = '') {
@@ -146,11 +198,11 @@ let menuData = [], menuFilter = 'all', editingItem = null, viewMode = 'today';
     function showDashboard() { $('loginPanel').classList.add('hidden'); $('dashboard').classList.remove('hidden'); }
 
     async function checkManager(user) {
-      const { data, error } = await db.from('staff_profiles').select('display_name, role').eq('user_id', user.id).maybeSingle();
+      const { data, error } = await db.from('staff_profiles').select('display_name, role, is_active').eq('user_id', user.id).maybeSingle();
       if (error) throw new Error('تعذر التحقق من صلاحية الحساب: ' + error.message);
-      if (!data || data.role !== 'manager') {
+      if (!data || data.role !== 'manager' || data.is_active !== true) {
         await db.auth.signOut();
-        throw new Error('هذا الحساب ليس لديه صلاحية مدير.');
+        throw new Error('هذا الحساب ليس لديه صلاحية مدير نشط.');
       }
       setText('welcome', 'أهلًا، ' + (data.display_name || 'مدير المطعم'));
       showDashboard();
@@ -376,6 +428,96 @@ if (cashierIds.length) {
       if (error) { setText('menuMessage', 'تعذر تحميل المنيو. راجع سياسة قراءة المدير: ' + error.message); return; }
       menuData = data || []; renderMenu();
     }
+    async function loadCashiers() {
+  const box = $('cashierList');
+  box.replaceChildren();
+
+  setText('cashierMessage', 'جارٍ تحميل حسابات الكاشير...');
+
+  const { data, error } = await db
+    .from('staff_profiles')
+    .select('user_id, display_name, role, is_active')
+    .eq('role', 'cashier')
+    .order('display_name', { ascending: true });
+
+  if (error) {
+    setText('cashierMessage', 'تعذر تحميل الحسابات: ' + error.message);
+    return;
+  }
+
+  if (!data || !data.length) {
+    setText('cashierMessage', 'لا توجد حسابات كاشير مسجلة.');
+    return;
+  }
+
+  setText('cashierMessage', 'عدد حسابات الكاشير: ' + data.length);
+
+  data.forEach(cashier => {
+    const card = document.createElement('div');
+    card.className = 'menu-item';
+
+    const name = document.createElement('h3');
+    name.textContent = cashier.display_name || 'كاشير بدون اسم';
+
+    const status = document.createElement('p');
+    status.textContent = cashier.is_active ? 'الحالة: نشط' : 'الحالة: موقوف';
+
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.textContent = 'تعديل الاسم';
+    editBtn.addEventListener('click', async () => {
+      const newName = prompt('اكتب الاسم الجديد:', cashier.display_name || '');
+      if (newName === null) return;
+
+      if (!newName.trim()) {
+        alert('الاسم لا يمكن أن يكون فارغًا.');
+        return;
+      }
+
+      try {
+        await manageCashiers({
+          action: 'update',
+          user_id: cashier.user_id,
+          display_name: newName.trim()
+        });
+
+        setText('cashierMessage', 'تم تعديل الاسم بنجاح.');
+        await loadCashiers();
+      } catch (err) {
+        setText('cashierMessage', 'تعذر التعديل: ' + err.message);
+      }
+    });
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.type = 'button';
+    toggleBtn.className = cashier.is_active ? 'danger' : 'success';
+    toggleBtn.textContent = cashier.is_active ? 'إيقاف الحساب' : 'إعادة التفعيل';
+
+    toggleBtn.addEventListener('click', async () => {
+      const next = !cashier.is_active;
+
+      if (!confirm(next ? 'هل تريد إعادة تفعيل هذا الحساب؟' : 'هل تريد إيقاف هذا الحساب؟')) {
+        return;
+      }
+
+      try {
+        await manageCashiers({
+          action: 'set_active',
+          user_id: cashier.user_id,
+          is_active: next
+        });
+
+        setText('cashierMessage', next ? 'تم تفعيل الحساب.' : 'تم إيقاف الحساب.');
+        await loadCashiers();
+      } catch (err) {
+        setText('cashierMessage', 'تعذر تحديث الحساب: ' + err.message);
+      }
+    });
+
+    card.append(name, status, editBtn, toggleBtn);
+    box.appendChild(card);
+  });
+}
   function renderMenu() {
   const box = $('menuItems');
   box.replaceChildren();
@@ -512,9 +654,10 @@ if (cashierIds.length) {
     document.querySelectorAll('[data-tab]').forEach(button => {
       button.addEventListener('click', () => {
         const target = button.dataset.tab;
-        ['menuPanel', 'ordersPanel', 'reportsPanel'].forEach(id => $(id).classList.toggle('hidden', id !== target));
+        ['menuPanel', 'ordersPanel', 'reportsPanel', 'cashiersPanel'].forEach(id => $(id).classList.toggle('hidden', id !== target));
         if (target === 'ordersPanel') loadOrders();
         if (target === 'reportsPanel') loadSalesReport();
+        if (target === 'cashiersPanel') loadCashiers();
       });
     });
     $('loginForm').addEventListener('submit', async event => {
@@ -524,6 +667,36 @@ if (cashierIds.length) {
       if (error) { setText('loginMessage', 'فشل تسجيل الدخول: ' + error.message); return; }
       try { await checkManager(data.user); } catch (err) { showLogin(err.message); }
     });
+    $('cashierForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const display_name = $('cashierName').value.trim();
+  const email = $('cashierEmail').value.trim();
+  const password = $('cashierPassword').value;
+
+  const button = $('addCashierBtn');
+  button.disabled = true;
+
+  try {
+    await manageCashiers({
+      action: 'create',
+      display_name,
+      email,
+      password
+    });
+
+    $('cashierForm').reset();
+    setText('cashierMessage', 'تم إنشاء حساب الكاشير بنجاح.');
+    await loadCashiers();
+
+  } catch (err) {
+    setText('cashierMessage', 'تعذر إنشاء الحساب: ' + err.message);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+$('refreshCashiersBtn').addEventListener('click', loadCashiers);
     $('refreshBtn').addEventListener('click', loadOrders);
     $('todayView').addEventListener('click', async () => {
   viewMode = 'today';
