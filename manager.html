@@ -581,6 +581,37 @@ async function manageMenu(payload) {
 
   return data;
 }
+    
+async function manageOrders(payload) {
+  const { data: sessionData } = await db.auth.getSession();
+
+  const token = sessionData.session?.access_token;
+
+  if (!token) {
+    throw new Error('انتهت جلسة تسجيل الدخول. سجّل الدخول مرة أخرى.');
+  }
+
+  const { data, error } = await db.functions.invoke(
+    'manage-orders',
+    {
+      body: payload,
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  if (error) {
+    throw new Error(data?.error || error.message);
+  }
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return data;
+}
+
 
 let menuData = [], menuFilter = 'all', editingItem = null, viewMode = 'today';
     function setText(id, text) { $(id).textContent = text; }
@@ -645,6 +676,7 @@ function riyadhDayBounds(dateKey) {
   };
 }
 
+
 async function loadOrders() {
   const box = $('orders');
   box.replaceChildren();
@@ -657,50 +689,52 @@ async function loadOrders() {
 
   const { start, end } = riyadhDayBounds(dateKey);
 
-  const { data, error } = await db
-    .from('orders')
-    .select('*')
-    .gte('created_at', start)
-    .lt('created_at', end)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    setText('message', 'تعذر تحميل الطلبات: ' + error.message);
-    return;
-  }
-
-  setText('message', 'عدد الطلبات المعروضة: ' + data.length);
-
-  if (!data.length) {
-    box.textContent = 'لا توجد طلبات في هذا التاريخ.';
-    return;
-  }
-
-  data.forEach(order => {
-    const card = document.createElement('article');
-    card.className = 'order';
-
-    const details = [
-      ['h3', 'طلب رقم ' + (order.daily_order_number ?? order.id)],
-      ['p', 'العميل: ' + (order.customer_name || 'غير مسجل')],
-      ['p', 'الهاتف: ' + (order.customer_phone || 'غير مسجل')],
-      ['p', 'الحالة: ' + (order.status || 'غير محددة')],
-      ['p', 'الإجمالي: ' + money(order.total)],
-      ['p', order.created_at
-        ? 'التاريخ: ' + new Date(order.created_at).toLocaleString('ar-EG', {
-            timeZone: 'Asia/Riyadh'
-          })
-        : '']
-    ];
-
-    details.forEach(([tag, value]) => {
-      const el = document.createElement(tag);
-      el.textContent = value;
-      card.appendChild(el);
+  try {
+    const result = await manageOrders({
+      restaurant: $('cashierRestaurant').value,
+      date: dateKey,
+      start,
+      end
     });
 
-    box.appendChild(card);
-  });
+    const data = result.orders || [];
+
+    setText('message', 'عدد الطلبات المعروضة: ' + data.length);
+
+    if (!data.length) {
+      box.textContent = 'لا توجد طلبات في هذا التاريخ.';
+      return;
+    }
+
+    data.forEach(order => {
+      const card = document.createElement('article');
+      card.className = 'order';
+
+      const details = [
+        ['h3', 'طلب رقم ' + (order.daily_order_number ?? order.id)],
+        ['p', 'العميل: ' + (order.customer_name || 'غير مسجل')],
+        ['p', 'الهاتف: ' + (order.customer_phone || 'غير مسجل')],
+        ['p', 'الحالة: ' + (order.status || 'غير محددة')],
+        ['p', 'الإجمالي: ' + money(order.total)],
+        ['p', order.created_at
+          ? 'التاريخ: ' + new Date(order.created_at).toLocaleString('ar-EG', {
+              timeZone: 'Asia/Riyadh'
+            })
+          : '']
+      ];
+
+      details.forEach(([tag, value]) => {
+        const el = document.createElement(tag);
+        el.textContent = value;
+        card.appendChild(el);
+      });
+
+      box.appendChild(card);
+    });
+
+  } catch (err) {
+    setText('message', 'تعذر تحميل الطلبات: ' + err.message);
+  }
 }
 
     async function loadSalesReport() {
