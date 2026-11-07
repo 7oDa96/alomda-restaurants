@@ -979,17 +979,15 @@ async function loadMenu() {
 
 console.log('المطعم المختار:', restaurant);
 console.log('عدد الأصناف:', menuData.length);
+
 console.log(
-  'أول صنف سمك:',
-  const fishItem = menuData.find(
-  item => item.category === 'الأسماك'
+  'بيانات صنف السمك:',
+  menuData.find(item => item.category === 'الأسماك')
 );
 
-console.log('بيانات صنف السمك:', fishItem);
 console.log(
   'التسويات:',
-  fishItem?.preparation_options
-);
+  menuData.find(item => item.category === 'الأسماك')?.preparation_options
 );
     renderMenu();
 
