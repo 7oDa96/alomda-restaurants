@@ -5,37 +5,295 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>لوحة مدير مطعم العمدة</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #f5f3ef; margin: 0; color: #29251f; }
-    header { background: #633b20; color: white; padding: 20px; text-align: center; }
-    main { max-width: 1100px; margin: 20px auto; padding: 14px; }
-    .card { background: white; padding: 18px; border-radius: 12px; margin-bottom: 18px; box-shadow: 0 2px 8px #00000010; }
-    input, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 7px; font-size: 16px; }
-    input { border: 1px solid #ccc; }
-    button { background: #633b20; color: white; border: 0; cursor: pointer; }
-    button:disabled { opacity: .6; cursor: wait; }
-    .secondary { background: #75695e; } .danger { background: #a12f2f; } .success { background: #28734a; }
-    .hidden { display: none !important; } .muted { color: #6b625a; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
-    .tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 14px; }
-    .tabs button { margin: 0; }
-    .order, .menu-item { border: 1px solid #e7e0d8; border-radius: 8px; padding: 13px; margin: 10px 0; overflow-wrap: anywhere; }
-    .menu-item h3 { margin-top: 0; }
-    .menu-item .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
-    .menu-item .actions button { margin: 0; }
-    .badge { display: inline-block; padding: 5px 9px; border-radius: 20px; background: #e7f4e9; color: #24623b; font-size: 13px; }
-    .badge.off { background: #f8e8e5; color: #942e24; }
-    #message, #menuMessage, #reportMessage { white-space: pre-wrap; }
-    .notice { background: #fff6df; padding: 12px; border-radius: 8px; line-height: 1.7; }
-    .stat { background: #faf8f5; border: 1px solid #e7e0d8; border-radius: 10px; padding: 15px; }
-    .stat .number { font-size: 24px; font-weight: bold; margin-top: 8px; color: #633b20; }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; min-width: 420px; }
-    th, td { border-bottom: 1px solid #e7e0d8; padding: 10px; text-align: right; }
-    th { background: #f5f3ef; }
-    .filter-label { display: block; margin-top: 8px; }
-  </style>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --navy: #0b1729;
+  --navy-light: #14243b;
+  --panel: #172941;
+  --gold: #d4af37;
+  --gold-light: #f3d477;
+  --text: #f8fafc;
+  --muted: #aab7c8;
+  --border: #34465d;
+  --green: #15965b;
+  --red: #bd4141;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: var(--navy);
+  margin: 0;
+  color: var(--text);
+  direction: rtl;
+}
+
+header {
+  background: linear-gradient(120deg, #07101e, #172b46);
+  color: var(--gold-light);
+  padding: 25px 20px;
+  text-align: center;
+  border-bottom: 2px solid var(--gold);
+  box-shadow: 0 5px 25px #00000055;
+}
+
+header h1 {
+  margin: 0 0 8px;
+  font-size: 30px;
+  letter-spacing: 1px;
+}
+
+header p {
+  color: #cbd5e1;
+  margin: 0;
+}
+
+main {
+  max-width: 1400px;
+  margin: 25px auto;
+  padding: 16px;
+}
+
+.card {
+  background: linear-gradient(145deg, #172941, #101e32);
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 25px #00000030;
+}
+
+h2, h3 {
+  color: var(--gold-light);
+}
+
+p {
+  line-height: 1.7;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 13px;
+  margin: 7px 0;
+  border-radius: 9px;
+  font-size: 15px;
+  background: #0b192c;
+  color: white;
+  border: 1px solid #40536c;
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px #d4af3725;
+}
+
+input::placeholder {
+  color: #91a0b4;
+}
+
+button {
+  width: 100%;
+  padding: 13px 16px;
+  margin: 6px 0;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #f0cf69, #b88a1e);
+  color: #172033;
+  border: 1px solid #f6dc91;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+button:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: .6;
+  cursor: wait;
+  transform: none;
+}
+
+.secondary {
+  background: #34465d;
+  color: white;
+  border-color: #52647a;
+}
+
+.danger {
+  background: #a83232;
+  color: white;
+  border-color: #d45a5a;
+}
+
+.success {
+  background: #147849;
+  color: white;
+  border-color: #249b65;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  align-items: stretch;
+}
+
+.tabs .card {
+  margin: 0;
+  padding: 12px;
+}
+
+.tabs .card h3 {
+  margin: 5px 0;
+  font-size: 15px;
+}
+
+.tabs button {
+  margin: 0;
+  min-height: 55px;
+}
+
+.order, .menu-item {
+  background: #102139;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+
+.menu-item h3 {
+  margin-top: 0;
+}
+
+.menu-item .actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.menu-item .actions button {
+  margin: 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 11px;
+  border-radius: 20px;
+  background: #124d37;
+  color: #8df0bd;
+  font-size: 13px;
+}
+
+.badge.off {
+  background: #572626;
+  color: #ffaaaa;
+}
+
+#message, #menuMessage, #reportMessage {
+  white-space: pre-wrap;
+  color: var(--gold-light);
+}
+
+.notice {
+  background: #382f1c;
+  border: 1px solid #a98736;
+  color: #ffe5a0;
+  padding: 14px;
+  border-radius: 10px;
+  line-height: 1.8;
+}
+
+.stat {
+  background: linear-gradient(145deg, #1b304b, #101e32);
+  border: 1px solid #52647a;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.stat .number {
+  font-size: 27px;
+  font-weight: bold;
+  margin-top: 10px;
+  color: var(--gold-light);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  min-width: 420px;
+  background: #102139;
+}
+
+th, td {
+  border-bottom: 1px solid #34465d;
+  padding: 13px;
+  text-align: right;
+}
+
+th {
+  background: #203651;
+  color: var(--gold-light);
+}
+
+tr:hover td {
+  background: #1b304b;
+}
+
+.filter-label {
+  display: block;
+  margin-top: 8px;
+  color: var(--gold-light);
+}
+
+@media (max-width: 600px) {
+  main {
+    padding: 10px;
+    margin: 12px auto;
+  }
+
+  header h1 {
+    font-size: 24px;
+  }
+
+  .card {
+    padding: 15px;
+  }
+
+  .tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+</style>
+
 </head>
 <body>
   <header><h1>مطعم العمدة</h1><p>لوحة إدارة المطعم</p></header>
