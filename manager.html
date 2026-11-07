@@ -419,6 +419,16 @@ tr:hover td {
             <div><label for="itemMin">أقل سعر (اختياري)</label><input id="itemMin" type="number" min="0" step="0.01" placeholder="اتركه فارغًا للسعر الثابت"></div>
             <div><label for="itemMax">أعلى سعر (اختياري)</label><input id="itemMax" type="number" min="0" step="0.01" placeholder="اتركه فارغًا للسعر الثابت"></div>
           </div>
+          <label for="itemImage">صورة الصنف</label>
+<input id="itemImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+
+<img
+  id="itemImagePreview"
+  class="hidden"
+  alt="معاينة صورة الصنف"
+  style="width:150px;height:120px;object-fit:cover;border-radius:10px;margin:8px 0;border:1px solid #52647a;"
+>
+<p class="muted">الحد الأقصى لحجم الصورة 5 ميجابايت.</p>
           <label><input id="itemAvailable" type="checkbox" checked style="width:auto;margin-left:8px"> الصنف متاح للبيع</label>
           <button id="saveItemBtn" type="submit">حفظ الصنف</button>
           <button id="cancelEditBtn" type="button" class="secondary hidden">إلغاء التعديل</button>
@@ -581,7 +591,38 @@ async function manageMenu(payload) {
 
   return data;
 }
-    
+  async function uploadMenuImage(file, restaurant) {
+  const { data: sessionData } = await db.auth.getSession();
+  const token = sessionData.session?.access_token;
+
+  if (!token) {
+    throw new Error('انتهت جلسة تسجيل الدخول. سجّل الدخول مرة أخرى.');
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('restaurant', restaurant);
+
+  const response = await fetch(
+    `${SUPABASE_URL}/functions/v1/manage-menu`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        apikey: SUPABASE_KEY
+      },
+      body: formData
+    }
+  );
+
+  const result = await response.json();
+
+  if (!response.ok || result.error) {
+    throw new Error(result.error || 'تعذر رفع الصورة.');
+  }
+
+  return result.image_url;
+}  
 async function manageOrders(payload) {
   const { data: sessionData } = await db.auth.getSession();
 
@@ -1142,8 +1183,22 @@ async function loadCashiers() {
         const card = document.createElement('div');
         card.className = 'order';
 
-        const title = document.createElement('h3');
-        title.textContent = item.name || 'بدون اسم';
+        if (item.image_url) {
+  const image = document.createElement('img');
+  image.src = item.image_url;
+  image.alt = item.name || 'صورة الصنف';
+  image.loading = 'lazy';
+  image.style.width = '100px';
+  image.style.height = '80px';
+  image.style.objectFit = 'cover';
+  image.style.borderRadius = '10px';
+  image.style.marginBottom = '8px';
+
+  card.appendChild(image);
+}
+
+const title = document.createElement('h3');
+title.textContent = item.name || 'بدون اسم';
 
         const price = document.createElement('p');
         price.textContent = 'السعر: ' + formatPrice(item);
@@ -1175,15 +1230,36 @@ async function loadCashiers() {
     });
 }
     function beginEdit(item) {
-      editingItem = item; $('itemId').value = item.id; $('itemName').value = item.name || ''; $('itemCategory').value = item.category || '';
+      editingItem = item;const preview = $('itemImagePreview');
+
+$('itemImage').value = '';
+
+if (item.image_url) {
+  preview.src = item.image_url;
+  preview.classList.remove('hidden');
+} else {
+  preview.src = '';
+  preview.classList.add('hidden');
+} $('itemId').value = item.id; $('itemName').value = item.name || ''; $('itemCategory').value = item.category || '';
       $('itemPrice').value = item.price ?? ''; $('itemMin').value = item.min_price ?? ''; $('itemMax').value = item.max_price ?? '';
       $('itemAvailable').checked = item.is_available === true; setText('formTitle', 'تعديل الصنف'); setText('saveItemBtn', 'حفظ التعديلات');
       $('cancelEditBtn').classList.remove('hidden'); $('menuPanel').scrollIntoView({ behavior: 'smooth' });
     }
     function resetForm() {
-      editingItem = null; $('menuForm').reset(); $('itemId').value = ''; $('itemAvailable').checked = true;
-      setText('formTitle', 'إضافة صنف جديد'); setText('saveItemBtn', 'حفظ الصنف'); $('cancelEditBtn').classList.add('hidden');
-    }
+  editingItem = null;
+  $('menuForm').reset();
+  $('itemId').value = '';
+  $('itemAvailable').checked = true;
+
+  const preview = $('itemImagePreview');
+  preview.src = '';
+  preview.classList.add('hidden');
+  $('itemImage').value = '';
+
+  setText('formTitle', 'إضافة صنف جديد');
+  setText('saveItemBtn', 'حفظ الصنف');
+  $('cancelEditBtn').classList.add('hidden');
+}
     function validatePrice(price, min, max) {
       if (!Number.isFinite(price) || price < 0) return 'أدخل سعرًا صحيحًا.';
       if ((min === null) !== (max === null)) return 'أدخل أقل سعر وأعلى سعر معًا، أو اتركهما فارغين.';
@@ -1215,7 +1291,16 @@ $('menuForm').addEventListener('submit', async event => {
     setText('menuMessage', priceError);
     return;
   }
+let imageUrl = editingItem?.image_url || '';
 
+const imageFile = $('itemImage').files[0];
+
+if (imageFile) {
+  imageUrl = await uploadMenuImage(
+    imageFile,
+    $('cashierRestaurant').value
+  );
+}
   const item = {
     action: 'save',
     restaurant: $('cashierRestaurant').value,
@@ -1225,6 +1310,7 @@ $('menuForm').addEventListener('submit', async event => {
     min_price: min,
     max_price: max,
     is_available: $('itemAvailable').checked
+    image_url: imageUrl,
   };
 
   if (editingItem) {
@@ -1282,7 +1368,35 @@ async function toggleAvailability(item) {
     );
   }
 }
+$('itemImage').addEventListener('change', () => {
+  const file = $('itemImage').files[0];
+  const preview = $('itemImagePreview');
 
+  if (!file) {
+    preview.src = '';
+    preview.classList.add('hidden');
+    return;
+  }
+
+  if (!file.type.startsWith('image/')) {
+    alert('اختر ملف صورة صحيح.');
+    $('itemImage').value = '';
+    preview.src = '';
+    preview.classList.add('hidden');
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert('حجم الصورة يجب ألا يتجاوز 5 ميجابايت.');
+    $('itemImage').value = '';
+    preview.src = '';
+    preview.classList.add('hidden');
+    return;
+  }
+
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+});
     $('cancelEditBtn').addEventListener('click', resetForm);
     $('menuSearch').addEventListener('input', renderMenu);
     $('showAllBtn').addEventListener('click', () => { menuFilter = 'all'; renderMenu(); });
