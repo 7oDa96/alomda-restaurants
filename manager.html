@@ -100,14 +100,22 @@
   <h2>إدارة الكاشير</h2>
   <p class="muted">إضافة حسابات الكاشير وتعديل أسمائهم وإيقافها أو إعادة تفعيلها.</p>
 
-  <h3>إضافة كاشير جديد</h3>
+  
+<h3>إضافة كاشير جديد</h3>
 
-  <form id="cashierForm">
-    <input id="cashierName" type="text" placeholder="اسم الكاشير" required>
-    <input id="cashierEmail" type="email" placeholder="البريد الإلكتروني" required>
-    <input id="cashierPassword" type="password" placeholder="كلمة المرور" minlength="8" required>
-    <button id="addCashierBtn" type="submit">إضافة الكاشير</button>
-  </form>
+<label for="cashierRestaurant">المطعم التابع له الكاشير</label>
+<select id="cashierRestaurant" required>
+  <option value="alomda">مطعم العمدة</option>
+  <option value="fish">أسماك العمدة</option>
+</select>
+
+<form id="cashierForm">
+  <input id="cashierName" type="text" placeholder="اسم الكاشير" required>
+  <input id="cashierEmail" type="email" placeholder="البريد الإلكتروني" required>
+  <input id="cashierPassword" type="password" placeholder="كلمة المرور" minlength="8" required>
+  <button id="addCashierBtn" type="submit">إضافة الكاشير</button>
+</form>
+
 
   <p id="cashierMessage" role="status"></p>
 
@@ -429,19 +437,26 @@ if (cashierIds.length) {
       menuData = data || []; renderMenu();
     }
   
+
 async function loadCashiers() {
   const box = $('cashierList');
   box.replaceChildren();
 
+  // معرفة المطعم المختار
+  const restaurant = $('cashierRestaurant').value;
+
   setText('cashierMessage', 'جارٍ تحميل حسابات الكاشير...');
 
   try {
-    // جلب بيانات الكاشير والإيميلات من Edge Function
-    const result = await manageCashiers({ action: 'list' });
+    const result = await manageCashiers({
+      action: 'list',
+      restaurant
+    });
+
     const data = result.cashiers || [];
 
     if (!data.length) {
-      setText('cashierMessage', 'لا توجد حسابات كاشير مسجلة.');
+      setText('cashierMessage', 'لا توجد حسابات كاشير مسجلة في هذا المطعم.');
       return;
     }
 
@@ -477,6 +492,7 @@ async function loadCashiers() {
         try {
           await manageCashiers({
             action: 'update',
+            restaurant,
             user_id: cashier.user_id,
             display_name: newName.trim()
           });
@@ -513,6 +529,7 @@ async function loadCashiers() {
         try {
           await manageCashiers({
             action: 'reset_password',
+            restaurant,
             user_id: cashier.user_id,
             password: newPassword
           });
@@ -539,6 +556,7 @@ async function loadCashiers() {
         try {
           await manageCashiers({
             action: 'set_active',
+            restaurant,
             user_id: cashier.user_id,
             is_active: next
           });
@@ -708,12 +726,14 @@ async function loadCashiers() {
       if (error) { setText('loginMessage', 'فشل تسجيل الدخول: ' + error.message); return; }
       try { await checkManager(data.user); } catch (err) { showLogin(err.message); }
     });
-    $('cashierForm').addEventListener('submit', async event => {
+    
+$('cashierForm').addEventListener('submit', async event => {
   event.preventDefault();
 
   const display_name = $('cashierName').value.trim();
   const email = $('cashierEmail').value.trim();
   const password = $('cashierPassword').value;
+  const restaurant = $('cashierRestaurant').value;
 
   const button = $('addCashierBtn');
   button.disabled = true;
@@ -721,12 +741,15 @@ async function loadCashiers() {
   try {
     await manageCashiers({
       action: 'create',
+      restaurant,
       display_name,
       email,
       password
     });
 
     $('cashierForm').reset();
+    $('cashierRestaurant').value = restaurant;
+
     setText('cashierMessage', 'تم إنشاء حساب الكاشير بنجاح.');
     await loadCashiers();
 
@@ -737,7 +760,10 @@ async function loadCashiers() {
   }
 });
 
+
 $('refreshCashiersBtn').addEventListener('click', loadCashiers);
+
+$('cashierRestaurant').addEventListener('change', loadCashiers);
     $('refreshBtn').addEventListener('click', loadOrders);
     $('todayView').addEventListener('click', async () => {
   viewMode = 'today';
