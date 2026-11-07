@@ -849,6 +849,7 @@ function subscribeOrders() {
         table: 'orders'
       },
      payload => {
+  console.log('REALTIME EVENT RECEIVED:', payload);
   if (payload.eventType === 'INSERT' && payload.new) {
     const id = String(payload.new.id);
 
