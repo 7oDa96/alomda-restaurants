@@ -1093,7 +1093,55 @@ function renderMenuItems() {
       box.appendChild(section);
     });
 }
+$('menuItems').addEventListener('click', async e => {
+  const button = e.target.closest('button[data-menu-id]');
+  if (!button) return;
 
+  const itemId = Number(button.dataset.menuId);
+  const nextAvailable = button.dataset.next === 'true';
+
+  if (!Number.isFinite(itemId)) return;
+
+  button.disabled = true;
+  message($('menuMessage'), 'جارٍ تحديث حالة الصنف...');
+
+  try {
+    const { data, error } = await client.rpc(
+      'set_menu_item_availability',
+      {
+        p_item_id: itemId,
+        p_is_available: nextAvailable
+      }
+    );
+
+    if (error) throw error;
+
+    if (data === false) {
+      throw new Error('لم يتم تحديث حالة الصنف.');
+    }
+
+    await loadMenuItems();
+
+    message(
+      $('menuMessage'),
+      nextAvailable
+        ? 'تمت إعادة إتاحة الصنف بنجاح.'
+        : 'تم إيقاف الصنف بنجاح.',
+      'success'
+    );
+
+  } catch (error) {
+    console.error('Menu availability error:', error);
+
+    message(
+      $('menuMessage'),
+      'تعذر تحديث الصنف: ' + error.message,
+      'error'
+    );
+
+    button.disabled = false;
+  }
+});
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
 
