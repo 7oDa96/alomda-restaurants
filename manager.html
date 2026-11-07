@@ -217,6 +217,37 @@ const $ = id => document.getElementById(id);
 
   return data;
 }
+    
+async function manageMenu(payload) {
+  const { data: sessionData } = await db.auth.getSession();
+
+  const token = sessionData.session?.access_token;
+
+  if (!token) {
+    throw new Error('انتهت جلسة تسجيل الدخول. سجّل الدخول مرة أخرى.');
+  }
+
+  const { data, error } = await db.functions.invoke(
+    'manage-menu',
+    {
+      body: payload,
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  if (error) {
+    throw new Error(data?.error || error.message);
+  }
+
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
+  return data;
+}
+
 let menuData = [], menuFilter = 'all', editingItem = null, viewMode = 'today';
     function setText(id, text) { $(id).textContent = text; }
     function showLogin(text = '') {
@@ -447,28 +478,34 @@ if (cashierIds.length) {
       if (item.min_price != null && item.max_price != null) return item.min_price + ' - ' + item.max_price + ' ريال';
       return (item.price ?? 'غير محدد') + ' ريال';
     }
-    async function loadMenu() {
+   
+async function loadMenu() {
   setText('menuMessage', 'جارٍ تحميل الأصناف...');
   $('menuItems').replaceChildren();
 
   const restaurant = $('cashierRestaurant').value;
-  const menuDb = restaurant === 'fish' ? fishDb : db;
 
-  const { data, error } = await menuDb
-    .from('menu_items')
-    .select('id, name, category, price, is_available, min_price, max_price')
-    .order('category', { ascending: true })
-    .order('name', { ascending: true })
-    .limit(1000);
+  try {
+    const result = await manageMenu({
+      action: 'list',
+      restaurant: restaurant
+    });
 
-  if (error) {
-    setText('menuMessage', 'تعذر تحميل المنيو: ' + error.message);
-    return;
+    menuData = result.items || [];
+    renderMenu();
+
+    setText('menuMessage', 'تم تحميل الأصناف بنجاح.');
+  } catch (err) {
+    menuData = [];
+    renderMenu();
+
+    setText(
+      'menuMessage',
+      'تعذر تحميل المنيو: ' + (err.message || 'خطأ غير معروف')
+    );
   }
-
-  menuData = data || [];
-  renderMenu();
 }
+
   
 
 async function loadCashiers() {
@@ -710,33 +747,99 @@ async function loadCashiers() {
       if (min !== null && max !== null && (min < 0 || max < min)) return 'راجع أقل سعر وأعلى سعر.';
       return '';
     }
-    $('menuForm').addEventListener('submit', async event => {
-      event.preventDefault();
-      const name = $('itemName').value.trim(), category = $('itemCategory').value.trim(), price = Number($('itemPrice').value);
-      const minRaw = $('itemMin').value.trim(), maxRaw = $('itemMax').value.trim();
-      const min = minRaw === '' ? null : Number(minRaw), max = maxRaw === '' ? null : Number(maxRaw);
-      if (!name || !category) { setText('menuMessage', 'أدخل اسم الصنف والفئة.'); return; }
-      const priceError = validatePrice(price, min, max); if (priceError) { setText('menuMessage', priceError); return; }
-      const item = { name, category, price, min_price: min, max_price: max, is_available: $('itemAvailable').checked };
-      const button = $('saveItemBtn'); button.disabled = true; setText('menuMessage', 'جارٍ حفظ الصنف...');
-      try {
-        let result;
-        if (editingItem) result = await db.from('menu_items').update(item).eq('id', editingItem.id);
-        else result = await db.from('menu_items').insert(item);
-        if (result.error) throw result.error;
-        setText('menuMessage', 'تم الحفظ بنجاح.'); resetForm(); await loadMenu();
-      } catch (err) {
-        setText('menuMessage', 'تعذر الحفظ: ' + (err.message || 'خطأ غير معروف'));
-      } finally { button.disabled = false; }
+   
+$('menuForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const name = $('itemName').value.trim();
+  const category = $('itemCategory').value.trim();
+  const price = Number($('itemPrice').value);
+
+  const minRaw = $('itemMin').value.trim();
+  const maxRaw = $('itemMax').value.trim();
+
+  const min = minRaw === '' ? null : Number(minRaw);
+  const max = maxRaw === '' ? null : Number(maxRaw);
+
+  if (!name || !category) {
+    setText('menuMessage', 'أدخل اسم الصنف والفئة.');
+    return;
+  }
+
+  const priceError = validatePrice(price, min, max);
+
+  if (priceError) {
+    setText('menuMessage', priceError);
+    return;
+  }
+
+  const item = {
+    action: 'save',
+    restaurant: $('cashierRestaurant').value,
+    name,
+    category,
+    price,
+    min_price: min,
+    max_price: max,
+    is_available: $('itemAvailable').checked
+  };
+
+  if (editingItem) {
+    item.id = editingItem.id;
+  }
+
+  const button = $('saveItemBtn');
+  button.disabled = true;
+
+  setText('menuMessage', 'جارٍ حفظ الصنف...');
+
+  try {
+    await manageMenu(item);
+
+    setText('menuMessage', 'تم الحفظ بنجاح.');
+    resetForm();
+    await loadMenu();
+
+  } catch (err) {
+    setText(
+      'menuMessage',
+      'تعذر الحفظ: ' + (err.message || 'خطأ غير معروف')
+    );
+  } finally {
+    button.disabled = false;
+  }
+});
+
+  
+async function toggleAvailability(item) {
+  const next = !item.is_available;
+  const action = next ? 'إعادة تفعيل' : 'إيقاف';
+
+  if (!confirm('هل تريد ' + action + ' الصنف: ' + item.name + '؟')) {
+    return;
+  }
+
+  setText('menuMessage', 'جارٍ تحديث حالة الصنف...');
+
+  try {
+    await manageMenu({
+      action: 'toggle',
+      restaurant: $('cashierRestaurant').value,
+      id: item.id,
+      is_available: next
     });
-    async function toggleAvailability(item) {
-      const next = !item.is_available, action = next ? 'إعادة تفعيل' : 'إيقاف';
-      if (!confirm('هل تريد ' + action + ' الصنف: ' + item.name + '؟')) return;
-      setText('menuMessage', 'جارٍ تحديث حالة الصنف...');
-      const { error } = await db.from('menu_items').update({ is_available: next }).eq('id', item.id);
-      if (error) { setText('menuMessage', 'تعذر تحديث الصنف: ' + error.message); return; }
-      setText('menuMessage', 'تم تحديث حالة الصنف.'); await loadMenu();
-    }
+
+    setText('menuMessage', 'تم تحديث حالة الصنف.');
+    await loadMenu();
+
+  } catch (err) {
+    setText(
+      'menuMessage',
+      'تعذر تحديث الصنف: ' + (err.message || 'خطأ غير معروف')
+    );
+  }
+}
+
     $('cancelEditBtn').addEventListener('click', resetForm);
     $('menuSearch').addEventListener('input', renderMenu);
     $('showAllBtn').addEventListener('click', () => { menuFilter = 'all'; renderMenu(); });
