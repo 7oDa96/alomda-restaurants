@@ -674,21 +674,7 @@ function riyadhDayBounds(dateKey) {
   };
 }
 function itemSummary(items){if(Array.isArray(items))return 
-items.map(i => {
-  const name = i.name || i.title || i.product_name || "صنف";
-  const quantity = i.quantity || i.qty || 1;
-  const weight = i.weight || (
-    Number(i.weight_kg) === 0.5 ? "نصف كيلو" :
-    Number(i.weight_kg) === 1 ? "كيلو" : ""
-  );
-
-  const price = Number(i.price || 0);
-  const subtotal = Number(i.subtotal ?? price * quantity);
-
-  return `${name} — ${weight} × ${quantity}
-سعر الوحدة: ${price} ريال
-الإجمالي: ${subtotal} ريال`;
-}).join('\n');
+items.map(i=>`${i.name||i.title||i.product_name||'صنف'} × ${i.quantity||i.qty||1}`).join('\n');
 
 
 async function checkProfile() {
