@@ -174,7 +174,54 @@ button:disabled {
   margin: 0;
   min-height: 55px;
 }
+/* بطاقات اختيار المطعم */
+.restaurant-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 25px;
+}
 
+.restaurant-card {
+  min-height: 180px;
+  background: linear-gradient(145deg, #172941, #0b1729);
+  border: 2px solid #34465d;
+  border-radius: 18px;
+  padding: 25px;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: .25s ease;
+}
+
+.restaurant-card:hover {
+  border-color: #d4af37;
+  box-shadow: 0 0 20px #d4af3725;
+  transform: translateY(-4px);
+}
+
+.restaurant-icon {
+  font-size: 42px;
+}
+
+.restaurant-card strong {
+  color: #f3d477;
+  font-size: 22px;
+}
+
+.restaurant-card small {
+  color: #aab7c8;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .restaurant-cards {
+    grid-template-columns: 1fr;
+  }
+}
 .order, .menu-item {
   background: #102139;
   border: 1px solid var(--border);
@@ -316,19 +363,45 @@ tr:hover td {
         <p id="message" role="status"></p>
       </div>
 
-     <div class="tabs">
-         <div class="card">
-    <h3>المطعم الحالي</h3>
-    <select id="cashierRestaurant" required>
-      <option value="alomda">مطعم العمدة</option>
-      <option value="fish">أسماك العمدة</option>
-    </select>
+    <section class="card" id="restaurantChooser">
+  <h2>اختر المطعم</h2>
+  <p class="muted">اختر المطعم الذي تريد إدارة حساباته وطلباته.</p>
+
+  <div class="restaurant-cards">
+    <button type="button" class="restaurant-card" data-restaurant="alomda">
+      <span class="restaurant-icon">🍽️</span>
+      <strong>مطعم العمدة</strong>
+      <small>إدارة المطعم والمنيو والطلبات</small>
+    </button>
+
+    <button type="button" class="restaurant-card" data-restaurant="fish">
+      <span class="restaurant-icon">🐟</span>
+      <strong>أسماك العمدة</strong>
+      <small>إدارة الأسماك والطلبات</small>
+    </button>
   </div>
-  <button type="button" data-tab="menuPanel">إدارة المنيو</button>
-  <button type="button" data-tab="ordersPanel">الطلبات</button>
-  <button type="button" data-tab="reportsPanel">تقارير المبيعات</button>
-  <button type="button" data-tab="cashiersPanel">إدارة الكاشير</button>
-</div>
+</section>
+
+<div id="restaurantWorkspace" class="hidden">
+
+  <div class="card">
+    <h3 id="currentRestaurantName">مطعم العمدة</h3>
+    <button id="backToRestaurants" type="button" class="secondary">
+      العودة لاختيار المطعم
+    </button>
+  </div>
+
+  <select id="cashierRestaurant" class="hidden" aria-hidden="true">
+    <option value="alomda">مطعم العمدة</option>
+    <option value="fish">أسماك العمدة</option>
+  </select>
+
+  <div class="tabs">
+    <button type="button" data-tab="menuPanel">إدارة المنيو</button>
+    <button type="button" data-tab="ordersPanel">الطلبات</button>
+    <button type="button" data-tab="reportsPanel">تقارير المبيعات</button>
+    <button type="button" data-tab="cashiersPanel">إدارة الكاشير</button>
+  </div>
 
       <section class="card" id="menuPanel">
         <h2>إدارة المنيو</h2>
@@ -419,10 +492,13 @@ tr:hover td {
         <h3>المبيعات حسب الكاشير</h3>
         <div id="cashierReport" class="table-wrap"></div>
         <h3>الطلبات المكتملة في الفترة</h3>
-        <div id="completedReportOrders"></div>
-      </section>
-    </section>
-  </main>
+       <div id="completedReportOrders"></div>
+</section>
+
+</div>
+
+</section>
+</main>
 
   <script>
     const SUPABASE_URL = 'https://gbetyfaobnwoqajjdcls.supabase.co';
@@ -1113,6 +1189,35 @@ async function toggleAvailability(item) {
         if (target === 'cashiersPanel') loadCashiers();
       });
     });
+    // اختيار المطعم
+document.querySelectorAll('[data-restaurant]').forEach(button => {
+  button.addEventListener('click', async () => {
+    const restaurant = button.dataset.restaurant;
+
+    $('cashierRestaurant').value = restaurant;
+
+    $('currentRestaurantName').textContent =
+      restaurant === 'fish'
+        ? 'أسماك العمدة'
+        : 'مطعم العمدة';
+
+    $('restaurantChooser').classList.add('hidden');
+    $('restaurantWorkspace').classList.remove('hidden');
+
+    ['menuPanel', 'ordersPanel', 'reportsPanel', 'cashiersPanel']
+      .forEach(id => {
+        $(id).classList.toggle('hidden', id !== 'menuPanel');
+      });
+
+    await loadMenu();
+  });
+});
+
+// العودة لاختيار المطعم
+$('backToRestaurants').addEventListener('click', () => {
+  $('restaurantWorkspace').classList.add('hidden');
+  $('restaurantChooser').classList.remove('hidden');
+});
     $('loginForm').addEventListener('submit', async event => {
       event.preventDefault(); setText('loginMessage', 'جارٍ تسجيل الدخول...');
       const email = $('email').value.trim(), password = $('password').value;
