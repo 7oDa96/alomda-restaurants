@@ -1354,6 +1354,13 @@ if (
   const addPreparationButton = document.createElement('button');
   addPreparationButton.type = 'button';
   addPreparationButton.textContent = 'إضافة تسوية';
+  addPreparationButton.style.display = 'inline-block';
+addPreparationButton.style.visibility = 'visible';
+addPreparationButton.style.opacity = '1';
+addPreparationButton.style.backgroundColor = '#198754';
+addPreparationButton.style.color = '#ffffff';
+addPreparationButton.style.padding = '10px 16px';
+addPreparationButton.style.marginTop = '8px';
 
   addPreparationButton.addEventListener('click', () => {
     const name = preparationInput.value.trim();
