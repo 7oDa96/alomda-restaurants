@@ -425,7 +425,12 @@ button:disabled {
 // Public project URL and publishable key. Never place service_role/secret keys in this file.
 const SUPABASE_URL = 'https://gbetyfaobnwoqajjdcls.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n';
-const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let client = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+let activeRestaurant = 'alomda';
 const $ = id => document.getElementById(id);
 let currentUser=null, currentRole=null, allOrders=[], filter='all', channel=null, lastSeen=new Set(), viewMode='today';const statusNames={new:'جديد',preparing:'قيد التحضير',ready:'جاهز',completed:'مكتمل',cancelled:'ملغي'};
 
