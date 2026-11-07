@@ -19,7 +19,26 @@
   --panel: #14243a;
   --turquoise: #20c4c9;
 }
+/* هوية مطعم العمدة */
+body.theme-alomda {
+  --cream: #fff8f2;
+  --ink: #351719;
+  --muted: #8d7373;
+  --line: #ead6d0;
+  --panel: #fff;
+  --turquoise: #b5121b;
+}
 
+/* هوية أسماك العمدة */
+body.theme-fish {
+  --cream: #081827;
+  --ink: #f1f7fa;
+  --muted: #a9c0ce;
+  --line: #24475b;
+  --panel: #102b40;
+  background: var(--cream);
+  color: var(--ink);
+}
 * {
   box-sizing: border-box;
 }
@@ -33,7 +52,7 @@ body {
 }
 
 .top {
-  background: linear-gradient(120deg,#101827,#243d59);
+  background: linear-gradient(120deg, #101827, #243d59);
   color: white;
   padding: 24px 5%;
   display: flex;
@@ -43,6 +62,18 @@ body {
   flex-wrap: wrap;
   border-bottom: 3px solid var(--gold);
   box-shadow: 0 5px 25px #10182725;
+}
+
+/* الشريط العلوي لمطعم العمدة */
+body.theme-alomda .top {
+  background: linear-gradient(120deg, #7f1018, #c51e2b);
+  border-bottom-color: #e2b84b;
+}
+
+/* الشريط العلوي لأسماك العمدة */
+body.theme-fish .top {
+  background: linear-gradient(120deg, #061522, #123f59);
+  border-bottom-color: var(--turquoise);
 }
 
 .brand {
@@ -70,7 +101,25 @@ body {
   padding: 26px;
   box-shadow: 0 12px 35px #1522380c;
 }
+/* بطاقات مطعم العمدة */
+body.theme-alomda .panel {
+  background: #fff;
+  border-color: #f0d9d5;
+  box-shadow: 0 12px 30px #8f1b2410;
+}
 
+/* بطاقات أسماك العمدة */
+body.theme-fish .panel {
+  background: #102b40;
+  border-color: #24475b;
+  color: #f1f7fa;
+  box-shadow: 0 12px 30px #00000025;
+}
+
+body.theme-fish .h,
+body.theme-fish .order h3 {
+  color: #f1f7fa;
+}
 .login {
   max-width: 460px;
   margin: 7vh auto;
@@ -136,7 +185,32 @@ button:disabled {
   background: linear-gradient(120deg,#172b45,#294968);
   color: white;
 }
+/* أزرار مطعم العمدة */
+body.theme-alomda .primary {
+  background: linear-gradient(120deg, #8f111b, #c51e2b);
+  color: white;
+}
 
+/* أزرار أسماك العمدة */
+body.theme-fish .primary {
+  background: linear-gradient(120deg, #087f91, #20c4c9);
+  color: #061522;
+}
+
+/* أزرار التنقل */
+body.theme-alomda .filters button.active,
+body.theme-alomda #todayView.active,
+body.theme-alomda #archiveView.active {
+  background: #a91621;
+  color: white;
+}
+
+body.theme-fish .filters button.active,
+body.theme-fish #todayView.active,
+body.theme-fish #archiveView.active {
+  background: #087f91;
+  color: white;
+}
 .secondary {
   background: #eaf1f7;
   color: #233b55;
@@ -189,7 +263,34 @@ button:disabled {
   border-radius: 18px;
   box-shadow: 0 8px 20px #172b4520;
 }
+/* إحصائيات مطعم العمدة */
+body.theme-alomda .stat {
+  background: linear-gradient(145deg, #8f111b, #c51e2b);
+  border-color: #d4af37;
+}
 
+/* إحصائيات أسماك العمدة */
+body.theme-fish .stat {
+  background: linear-gradient(145deg, #061522, #087f91);
+  border-color: #20c4c9;
+}
+
+/* كروت الطلبات في أسماك العمدة */
+body.theme-fish .order {
+  background: #102b40;
+  border-color: #24475b;
+  color: #f1f7fa;
+}
+
+body.theme-fish .order h3 {
+  color: #20c4c9;
+}
+
+body.theme-fish .items {
+  background: #0b2031;
+  border-color: #24475b;
+  color: #f1f7fa;
+}
 .stat strong {
   display: block;
   font-size: 2rem;
@@ -458,6 +559,21 @@ const fishDb = window.supabase.createClient(
 let client = alomdaDb;
 let activeRestaurant = 'alomda';
   const RESTAURANT_DEVICE_KEY = 'cashier-device-restaurant';
+  function applyRestaurantTheme() {
+  document.body.classList.remove('theme-alomda', 'theme-fish');
+
+  document.body.classList.add(
+    activeRestaurant === 'fish'
+      ? 'theme-fish'
+      : 'theme-alomda'
+  );
+    console.log(
+    'المطعم الحالي:',
+    activeRestaurant,
+    'الكلاسات:',
+    document.body.className
+  );
+}
 const $ = id => document.getElementById(id);
 let currentUser=null, currentRole=null, allOrders=[], filter='all', channel=null, lastSeen=new Set(), viewMode='today';const statusNames={new:'جديد',preparing:'قيد التحضير',ready:'جاهز',completed:'مكتمل',cancelled:'ملغي'};
 
@@ -1087,7 +1203,7 @@ $('loginForm').addEventListener('submit', async e => {
 
   client = loginClient;
   activeRestaurant = restaurant;
-
+applyRestaurantTheme();
   localStorage.setItem(RESTAURANT_DEVICE_KEY, restaurant);
 
   currentUser = loginUser;
@@ -1248,7 +1364,7 @@ const projects = savedRestaurant === 'fish'
 
     client = restoredClient;
     activeRestaurant = restaurant;
-
+applyRestaurantTheme();
     const { data: u } = await client.auth.getUser();
     currentUser = u.user;
 
