@@ -470,7 +470,16 @@ body.theme-fish .items {
 </header>
 <main class="wrap">
 <section id="loginBox" class="panel login"><h1 class="h">تسجيل دخول الموظفين</h1><p class="muted">الدخول مخصص لحسابات الموظفين المعتمدة فقط.</p><form id="loginForm"><label class="field" for="email">البريد الإلكتروني</label><input id="email" type="email" autocomplete="username" required><label class="field" for="password">كلمة المرور</label><input id="password" type="password" autocomplete="current-password" required><button class="primary full" type="submit">دخول لوحة الكاشير</button></form><div id="loginMsg" class="status hidden" role="status"></div><p class="small">لا تشارك كلمة مرورك مع الآخرين. إذا كان الحساب غير مضاف إلى الموظفين، سيتم رفض الوصول.</p></section>
-<section id="dashboard" class="hidden"><div class="panel"><h1 class="h">الطلبات الواردة</h1><p class="muted">تتحدث القائمة تلقائيًا عند وصول طلب جديد. الكاشير هو المسؤول عن تحديث حالة الطلب.</p><div id="connection" class="status">جارٍ الاتصال...</div><div class="stats"><div class="stat">طلبات جديدة<strong id="countNew">0</strong></div><div class="stat">قيد التحضير<strong id="countPreparing">0</strong></div><div class="stat">جاهزة<strong id="countReady">0</strong></div></div><div class="toolbar"><div class="filters" id="filters"><button class="secondary active" data-filter="all">كل الطلبات</button><button class="secondary" data-filter="new">جديدة</button><button class="secondary" data-filter="preparing">قيد التحضير</button><button class="secondary" data-filter="ready">جاهزة</button><button class="secondary" data-filter="completed">مكتملة</button></div><button id="refresh" class="secondary">تحديث</button></div>
+<section id="dashboard" class="hidden"><div class="panel"><h1 class="h">الطلبات الواردة</h1><p class="muted">تتحدث القائمة تلقائيًا عند وصول طلب جديد. الكاشير هو المسؤول عن تحديث حالة الطلب.</p><div id="connection" class="status">جارٍ الاتصال...</div><div style="margin:12px 0">
+  <button
+    id="enablePush"
+    type="button"
+    style="background:#198754;color:white;padding:12px 18px;border:0;border-radius:10px;cursor:pointer"
+  >
+    🔔 تفعيل إشعارات الطلبات على هذا الجهاز
+  </button>
+  <span id="pushStatus" class="muted"></span>
+</div><div class="stats"><div class="stat">طلبات جديدة<strong id="countNew">0</strong></div><div class="stat">قيد التحضير<strong id="countPreparing">0</strong></div><div class="stat">جاهزة<strong id="countReady">0</strong></div></div><div class="toolbar"><div class="filters" id="filters"><button class="secondary active" data-filter="all">كل الطلبات</button><button class="secondary" data-filter="new">جديدة</button><button class="secondary" data-filter="preparing">قيد التحضير</button><button class="secondary" data-filter="ready">جاهزة</button><button class="secondary" data-filter="completed">مكتملة</button></div><button id="refresh" class="secondary">تحديث</button></div>
 <div class="toolbar" style="margin-top:15px">
   <button id="todayView" class="secondary active" type="button">
     طلبات اليوم
@@ -648,7 +657,95 @@ function stopOrderAlarm() {
 }
 
 document.addEventListener('pointerdown', unlockAudio);
-function message(el,text,type=''){el.textContent=text;el.className='status'+(type?' '+type:'');el.classList.remove('hidden')}
+
+const VAPID_PUBLIC_KEY = 'BBbeBAfLqSo-IExISx1IHILzfTiXteYP6OceaZ6OzaficemCYyxGP7bDsa2VWPs1kheZe5uUCxBCe8kFa60ancE';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = atob(base64);
+
+  return Uint8Array.from(
+    [...rawData].map(char => char.charCodeAt(0))
+  );
+}
+
+async function enablePushNotifications() {
+  try {
+    if (!('serviceWorker' in navigator) ||
+        !('PushManager' in window)) {
+      throw new Error('المتصفح لا يدعم الإشعارات.');
+    }
+
+    const permission = await Notification.requestPermission();
+
+    if (permission !== 'granted') {
+      throw new Error('لم يتم السماح بالإشعارات.');
+    }
+
+    const registration =
+      await navigator.serviceWorker.ready;
+
+    let subscription =
+      await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey:
+          urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+
+    const subscriptionJson = subscription.toJSON();
+
+    const { error } = await client
+      .from('push_subscriptions')
+      .upsert({
+        user_id: currentUser.id,
+        endpoint: subscriptionJson.endpoint,
+        p256dh: subscriptionJson.keys.p256dh,
+        auth: subscriptionJson.keys.auth
+      }, {
+        onConflict: 'endpoint'
+      });
+
+    if (error) throw error;
+
+    console.log('Push subscription saved:', activeRestaurant);
+    return true;
+
+  } catch (error) {
+    console.error('Push subscription error:', error);
+    alert(error.message || 'تعذر تفعيل الإشعارات.');
+    return false;
+  }
+}
+
+// ربط زر تفعيل الإشعارات
+$('enablePush').addEventListener('click', async () => {
+  const button = $('enablePush');
+  const status = $('pushStatus');
+
+  button.disabled = true;
+  button.textContent = 'جارٍ تفعيل الإشعارات...';
+
+  const success = await enablePushNotifications();
+
+  if (success) {
+    button.textContent = 'تم تفعيل الإشعارات ✓';
+    status.textContent = 'هذا الجهاز مسجل لاستقبال الإشعارات.';
+    status.style.color = '#198754';
+  } else {
+    button.textContent = 'إعادة محاولة تفعيل الإشعارات';
+    button.disabled = false;
+  }
+});
+
+  function message(el,text,type=''){el.textContent=text;el.className='status'+(type?' '+type:'');el.classList.remove('hidden')}
 function safeText(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function money(value){const n=Number(value);return Number.isFinite(n)?n.toLocaleString('ar-EG',{minimumFractionDigits:2,maximumFractionDigits:2})+' ر.س':'—'}
 function riyadhDateKey(date = new Date()) {
