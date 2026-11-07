@@ -292,6 +292,27 @@ async function showDashboard(){ $('loginBox').classList.add('hidden');$('dashboa
 
 allOrders = orders;
 
+const orderIds = allOrders
+  .filter(o => o.cashier_user_id)
+  .map(o => Number(o.id));
+
+if (orderIds.length) {
+  const { data: cashierNames, error: cashierError } = await client
+    .rpc('get_order_cashier_names', { p_order_ids: orderIds });
+
+  if (cashierError) {
+    console.error('تعذر تحميل أسماء الكاشيرات:', cashierError);
+  } else {
+    const namesMap = new Map(
+      (cashierNames || []).map(item => [String(item.order_id), item.cashier_name])
+    );
+
+    allOrders.forEach(o => {
+      o.cashier_name = namesMap.get(String(o.id)) || null;
+    });
+  }
+}
+
 if (viewMode === 'today' && allOrders.some(order => order.status === 'new')) {
   startOrderAlarm();
 } else {
@@ -402,6 +423,11 @@ function render() {
         </div>
 
         <div class="meta">${safeText(date)}</div>
+
+<div class="meta">
+  <strong>استلم الطلب:</strong>
+  ${safeText(o.cashier_name || 'لم يتم استلامه بعد')}
+</div>
 
         <p>
           <strong>العميل:</strong> ${safeText(o.customer_name || '—')}<br>
