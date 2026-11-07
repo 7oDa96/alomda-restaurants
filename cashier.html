@@ -338,17 +338,24 @@ function subscribeOrders() {
         schema: 'public',
         table: 'orders'
       },
-      payload => {
-        if (payload.eventType === 'INSERT' && payload.new) {
-          const id = String(payload.new.id);
+     payload => {
+  if (payload.eventType === 'INSERT' && payload.new) {
+    const id = String(payload.new.id);
 
-          if (!lastSeen.has(id)) {
-            lastSeen.add(id);
-          }
-        }
+    if (!lastSeen.has(id)) {
+      lastSeen.add(id);
+    }
 
-        loadOrders();
-      }
+    if (
+      viewMode === 'today' &&
+      payload.new.status === 'new'
+    ) {
+      startOrderAlarm();
+    }
+  }
+
+  loadOrders();
+}
     )
     .subscribe(state => {
       if (state === 'SUBSCRIBED') {
