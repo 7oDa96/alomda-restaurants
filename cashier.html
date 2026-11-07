@@ -673,11 +673,23 @@ function riyadhDayBounds(dateKey) {
     end: new Date(end).toISOString()
   };
 }
-function itemSummary(items){if(Array.isArray(items))return 
-items.map(i=>`${i.name||i.title||i.product_name||'صنف'} × ${i.quantity||i.qty||1}`).join('\n');
 
+function itemSummary(items) {
+  if (Array.isArray(items)) {
+    return items.map(i =>
+      `${i.name || i.title || i.product_name || 'صنف'} × ${i.quantity || i.qty || 1}`
+    ).join('\n');
+  }
+
+  if (items && typeof items === 'object') {
+    return JSON.stringify(items, null, 2);
+  }
+
+  return String(items || 'لا توجد تفاصيل');
+}
 
 async function checkProfile() {
+
   const { data, error } = await client
     .from('staff_profiles')
     .select('display_name, role, is_active')
