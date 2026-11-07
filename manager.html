@@ -59,6 +59,13 @@
       </div>
 
      <div class="tabs">
+         <div class="card">
+    <h3>المطعم الحالي</h3>
+    <select id="cashierRestaurant" required>
+      <option value="alomda">مطعم العمدة</option>
+      <option value="fish">أسماك العمدة</option>
+    </select>
+  </div>
   <button type="button" data-tab="menuPanel">إدارة المنيو</button>
   <button type="button" data-tab="ordersPanel">الطلبات</button>
   <button type="button" data-tab="reportsPanel">تقارير المبيعات</button>
@@ -103,11 +110,6 @@
   
 <h3>إضافة كاشير جديد</h3>
 
-<label for="cashierRestaurant">المطعم التابع له الكاشير</label>
-<select id="cashierRestaurant" required>
-  <option value="alomda">مطعم العمدة</option>
-  <option value="fish">أسماك العمدة</option>
-</select>
 
 <form id="cashierForm">
   <input id="cashierName" type="text" placeholder="اسم الكاشير" required>
@@ -167,8 +169,25 @@
   <script>
     const SUPABASE_URL = 'https://gbetyfaobnwoqajjdcls.supabase.co';
     const SUPABASE_KEY = 'sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n';
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const $ = id => document.getElementById(id);
+   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// اتصال قاعدة بيانات أسماك العمدة
+const FISH_SUPABASE_URL = 'https://lyjxaltnznuoxnnpnxmn.supabase.co';
+const FISH_SUPABASE_KEY = 'sb_publishable_O2P2rY_tvSUzZbBKRdWrpA_uZO4Tfa7';
+
+const fishDb = window.supabase.createClient(
+  FISH_SUPABASE_URL,
+  FISH_SUPABASE_KEY,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  }
+);
+
+const $ = id => document.getElementById(id);
     async function manageCashiers(payload) {
   const { data: sessionData } = await db.auth.getSession();
 
@@ -429,13 +448,27 @@ if (cashierIds.length) {
       return (item.price ?? 'غير محدد') + ' ريال';
     }
     async function loadMenu() {
-      setText('menuMessage', 'جارٍ تحميل الأصناف...'); $('menuItems').replaceChildren();
-      const { data, error } = await db.from('menu_items')
-        .select('id, name, category, price, is_available, min_price, max_price')
-        .order('category', { ascending: true }).order('name', { ascending: true }).limit(1000);
-      if (error) { setText('menuMessage', 'تعذر تحميل المنيو. راجع سياسة قراءة المدير: ' + error.message); return; }
-      menuData = data || []; renderMenu();
-    }
+  setText('menuMessage', 'جارٍ تحميل الأصناف...');
+  $('menuItems').replaceChildren();
+
+  const restaurant = $('cashierRestaurant').value;
+  const menuDb = restaurant === 'fish' ? fishDb : db;
+
+  const { data, error } = await menuDb
+    .from('menu_items')
+    .select('id, name, category, price, is_available, min_price, max_price')
+    .order('category', { ascending: true })
+    .order('name', { ascending: true })
+    .limit(1000);
+
+  if (error) {
+    setText('menuMessage', 'تعذر تحميل المنيو: ' + error.message);
+    return;
+  }
+
+  menuData = data || [];
+  renderMenu();
+}
   
 
 async function loadCashiers() {
