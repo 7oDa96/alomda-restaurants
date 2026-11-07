@@ -981,7 +981,15 @@ console.log('المطعم المختار:', restaurant);
 console.log('عدد الأصناف:', menuData.length);
 console.log(
   'أول صنف سمك:',
-  menuData.find(item => item.category === 'الأسماك')
+  const fishItem = menuData.find(
+  item => item.category === 'الأسماك'
+);
+
+console.log('بيانات صنف السمك:', fishItem);
+console.log(
+  'التسويات:',
+  fishItem?.preparation_options
+);
 );
     renderMenu();
 
