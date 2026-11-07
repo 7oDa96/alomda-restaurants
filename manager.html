@@ -1130,7 +1130,61 @@ async function loadCashiers() {
     setText('cashierMessage', 'تعذر تحميل الحسابات: ' + err.message);
   }
 }
+async function saveFishPreparation(item, preparationName) {
+  try {
+    const result = await manageMenu({
+      action: 'save_preparation',
+      restaurant: 'fish',
+      id: item.id,
+      preparation_name: preparationName
+    });
 
+    if (!result.success) {
+      throw new Error(result.error || 'تعذر حفظ التسوية.');
+    }
+
+    const index = menuData.findIndex(
+      x => String(x.id) === String(item.id)
+    );
+
+    if (index !== -1) {
+      menuData[index] = result.item;
+    }
+
+    renderMenu();
+    setText('menuMessage', 'تم حفظ التسوية بنجاح.');
+  } catch (err) {
+    alert(err.message || 'حدث خطأ أثناء حفظ التسوية.');
+  }
+}
+    async function toggleFishPreparation(item, preparation) {
+  try {
+    const result = await manageMenu({
+      action: 'toggle_preparation',
+      restaurant: 'fish',
+      id: item.id,
+      preparation_name: preparation.name,
+      is_active: !preparation.is_active
+    });
+
+    if (!result.success) {
+      throw new Error(result.error || 'تعذر تحديث التسوية.');
+    }
+
+    const index = menuData.findIndex(
+      x => String(x.id) === String(item.id)
+    );
+
+    if (index !== -1) {
+      menuData[index] = result.item;
+    }
+
+    renderMenu();
+    setText('menuMessage', 'تم تحديث حالة التسوية بنجاح.');
+  } catch (err) {
+    alert(err.message || 'حدث خطأ أثناء تحديث التسوية.');
+  }
+}
   function renderMenu() {
   const box = $('menuItems');
   box.replaceChildren();
@@ -1222,8 +1276,88 @@ title.textContent = item.name || 'بدون اسم';
         toggleBtn.addEventListener('click', () => toggleAvailability(item));
 
         actions.append(editBtn, toggleBtn);
-        card.append(title, price, status, actions);
-        section.appendChild(card);
+card.append(title, price, status, actions);
+
+// إدارة التسويات لأصناف الأسماك فقط
+if (
+  $('cashierRestaurant').value === 'fish' &&
+  item.category === 'الأسماك'
+) {
+  const preparationBox = document.createElement('div');
+  preparationBox.style.marginTop = '12px';
+  preparationBox.style.padding = '10px';
+  preparationBox.style.border = '1px solid #ddd';
+  preparationBox.style.borderRadius = '10px';
+
+  const preparationTitle = document.createElement('h4');
+  preparationTitle.textContent = 'تسويات الصنف';
+
+  preparationBox.appendChild(preparationTitle);
+
+  const preparations = Array.isArray(item.preparation_options)
+    ? item.preparation_options
+    : [];
+
+  if (preparations.length === 0) {
+    const empty = document.createElement('p');
+    empty.textContent = 'لا توجد تسويات مضافة لهذا الصنف.';
+    preparationBox.appendChild(empty);
+  }
+
+  preparations.forEach(preparation => {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    row.style.justifyContent = 'space-between';
+    row.style.gap = '10px';
+    row.style.marginBottom = '8px';
+
+    const name = document.createElement('span');
+    name.textContent =
+      preparation.name +
+      (preparation.is_active ? ' (مفعّلة)' : ' (متوقفة)');
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.textContent = preparation.is_active
+      ? 'إيقاف'
+      : 'إعادة التفعيل';
+
+    toggle.className = preparation.is_active ? 'danger' : 'success';
+
+    toggle.addEventListener('click', () => {
+      toggleFishPreparation(item, preparation);
+    });
+
+    row.append(name, toggle);
+    preparationBox.appendChild(row);
+  });
+
+  const preparationInput = document.createElement('input');
+  preparationInput.type = 'text';
+  preparationInput.placeholder = 'اكتب اسم التسوية الجديدة';
+  preparationInput.maxLength = 100;
+
+  const addPreparationButton = document.createElement('button');
+  addPreparationButton.type = 'button';
+  addPreparationButton.textContent = 'إضافة تسوية';
+
+  addPreparationButton.addEventListener('click', () => {
+    const name = preparationInput.value.trim();
+
+    if (!name) {
+      alert('اكتب اسم التسوية أولاً.');
+      return;
+    }
+
+    saveFishPreparation(item, name);
+  });
+
+  preparationBox.append(preparationInput, addPreparationButton);
+  card.appendChild(preparationBox);
+}
+
+section.appendChild(card);
       });
 
       box.appendChild(section);
