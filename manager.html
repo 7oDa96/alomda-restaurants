@@ -428,96 +428,137 @@ if (cashierIds.length) {
       if (error) { setText('menuMessage', 'تعذر تحميل المنيو. راجع سياسة قراءة المدير: ' + error.message); return; }
       menuData = data || []; renderMenu();
     }
-    async function loadCashiers() {
+  
+async function loadCashiers() {
   const box = $('cashierList');
   box.replaceChildren();
 
   setText('cashierMessage', 'جارٍ تحميل حسابات الكاشير...');
 
-  const { data, error } = await db
-    .from('staff_profiles')
-    .select('user_id, display_name, role, is_active')
-    .eq('role', 'cashier')
-    .order('display_name', { ascending: true });
+  try {
+    // جلب بيانات الكاشير والإيميلات من Edge Function
+    const result = await manageCashiers({ action: 'list' });
+    const data = result.cashiers || [];
 
-  if (error) {
-    setText('cashierMessage', 'تعذر تحميل الحسابات: ' + error.message);
-    return;
-  }
+    if (!data.length) {
+      setText('cashierMessage', 'لا توجد حسابات كاشير مسجلة.');
+      return;
+    }
 
-  if (!data || !data.length) {
-    setText('cashierMessage', 'لا توجد حسابات كاشير مسجلة.');
-    return;
-  }
+    setText('cashierMessage', 'عدد حسابات الكاشير: ' + data.length);
 
-  setText('cashierMessage', 'عدد حسابات الكاشير: ' + data.length);
+    data.forEach(cashier => {
+      const card = document.createElement('div');
+      card.className = 'menu-item';
 
-  data.forEach(cashier => {
-    const card = document.createElement('div');
-    card.className = 'menu-item';
+      const name = document.createElement('h3');
+      name.textContent = cashier.display_name || 'كاشير بدون اسم';
 
-    const name = document.createElement('h3');
-    name.textContent = cashier.display_name || 'كاشير بدون اسم';
+      const email = document.createElement('p');
+      email.textContent = 'البريد الإلكتروني: ' + (cashier.email || 'غير متوفر');
 
-    const status = document.createElement('p');
-    status.textContent = cashier.is_active ? 'الحالة: نشط' : 'الحالة: موقوف';
+      const status = document.createElement('p');
+      status.textContent = cashier.is_active ? 'الحالة: نشط' : 'الحالة: موقوف';
 
-    const editBtn = document.createElement('button');
-    editBtn.type = 'button';
-    editBtn.textContent = 'تعديل الاسم';
-    editBtn.addEventListener('click', async () => {
-      const newName = prompt('اكتب الاسم الجديد:', cashier.display_name || '');
-      if (newName === null) return;
+      // تعديل الاسم
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.textContent = 'تعديل الاسم';
 
-      if (!newName.trim()) {
-        alert('الاسم لا يمكن أن يكون فارغًا.');
-        return;
-      }
+      editBtn.addEventListener('click', async () => {
+        const newName = prompt('اكتب الاسم الجديد:', cashier.display_name || '');
+        if (newName === null) return;
 
-      try {
-        await manageCashiers({
-          action: 'update',
-          user_id: cashier.user_id,
-          display_name: newName.trim()
-        });
+        if (!newName.trim()) {
+          alert('الاسم لا يمكن أن يكون فارغًا.');
+          return;
+        }
 
-        setText('cashierMessage', 'تم تعديل الاسم بنجاح.');
-        await loadCashiers();
-      } catch (err) {
-        setText('cashierMessage', 'تعذر التعديل: ' + err.message);
-      }
+        try {
+          await manageCashiers({
+            action: 'update',
+            user_id: cashier.user_id,
+            display_name: newName.trim()
+          });
+
+          setText('cashierMessage', 'تم تعديل الاسم بنجاح.');
+          await loadCashiers();
+        } catch (err) {
+          setText('cashierMessage', 'تعذر التعديل: ' + err.message);
+        }
+      });
+
+      // تغيير كلمة المرور
+      const passwordBtn = document.createElement('button');
+      passwordBtn.type = 'button';
+      passwordBtn.className = 'secondary';
+      passwordBtn.textContent = 'تغيير كلمة المرور';
+
+      passwordBtn.addEventListener('click', async () => {
+        const newPassword = prompt(
+          'أدخل كلمة المرور الجديدة للكاشير (8 أحرف على الأقل):'
+        );
+
+        if (newPassword === null) return;
+
+        if (newPassword.length < 8) {
+          alert('كلمة المرور يجب ألا تقل عن 8 أحرف.');
+          return;
+        }
+
+        if (!confirm('هل تريد تغيير كلمة مرور هذا الكاشير؟')) {
+          return;
+        }
+
+        try {
+          await manageCashiers({
+            action: 'reset_password',
+            user_id: cashier.user_id,
+            password: newPassword
+          });
+
+          setText('cashierMessage', 'تم تغيير كلمة المرور بنجاح.');
+        } catch (err) {
+          setText('cashierMessage', 'تعذر تغيير كلمة المرور: ' + err.message);
+        }
+      });
+
+      // إيقاف الحساب أو إعادة تفعيله
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = cashier.is_active ? 'danger' : 'success';
+      toggleBtn.textContent = cashier.is_active ? 'إيقاف الحساب' : 'إعادة التفعيل';
+
+      toggleBtn.addEventListener('click', async () => {
+        const next = !cashier.is_active;
+
+        if (!confirm(next ? 'هل تريد إعادة تفعيل هذا الحساب؟' : 'هل تريد إيقاف هذا الحساب؟')) {
+          return;
+        }
+
+        try {
+          await manageCashiers({
+            action: 'set_active',
+            user_id: cashier.user_id,
+            is_active: next
+          });
+
+          setText('cashierMessage', next ? 'تم تفعيل الحساب.' : 'تم إيقاف الحساب.');
+          await loadCashiers();
+        } catch (err) {
+          setText('cashierMessage', 'تعذر تحديث الحساب: ' + err.message);
+        }
+      });
+
+      card.append(name, email, status, editBtn, passwordBtn, toggleBtn);
+      box.appendChild(card);
     });
 
-    const toggleBtn = document.createElement('button');
-    toggleBtn.type = 'button';
-    toggleBtn.className = cashier.is_active ? 'danger' : 'success';
-    toggleBtn.textContent = cashier.is_active ? 'إيقاف الحساب' : 'إعادة التفعيل';
-
-    toggleBtn.addEventListener('click', async () => {
-      const next = !cashier.is_active;
-
-      if (!confirm(next ? 'هل تريد إعادة تفعيل هذا الحساب؟' : 'هل تريد إيقاف هذا الحساب؟')) {
-        return;
-      }
-
-      try {
-        await manageCashiers({
-          action: 'set_active',
-          user_id: cashier.user_id,
-          is_active: next
-        });
-
-        setText('cashierMessage', next ? 'تم تفعيل الحساب.' : 'تم إيقاف الحساب.');
-        await loadCashiers();
-      } catch (err) {
-        setText('cashierMessage', 'تعذر تحديث الحساب: ' + err.message);
-      }
-    });
-
-    card.append(name, status, editBtn, toggleBtn);
-    box.appendChild(card);
-  });
+  } catch (err) {
+    setText('cashierMessage', 'تعذر تحميل الحسابات: ' + err.message);
+  }
 }
+
   function renderMenu() {
   const box = $('menuItems');
   box.replaceChildren();
