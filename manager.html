@@ -976,6 +976,13 @@ async function loadMenu() {
     });
 
     menuData = result.items || [];
+
+console.log('المطعم المختار:', restaurant);
+console.log('عدد الأصناف:', menuData.length);
+console.log(
+  'أول صنف سمك:',
+  menuData.find(item => item.category === 'الأسماك')
+);
     renderMenu();
 
     setText('menuMessage', 'تم تحميل الأصناف بنجاح.');
