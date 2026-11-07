@@ -833,11 +833,7 @@ if (viewMode === 'today' && allOrders.some(order => order.status === 'new')) {
 
   render();
 
-    message(
-    $('connection'),
-    'متصل بقاعدة البيانات. سيتم تحديث الطلبات الجديدة تلقائيًا.',
-    'good'
-  );
+    
 }
 
 function subscribeOrders() {
@@ -871,14 +867,19 @@ function subscribeOrders() {
   loadOrders();
 }
     )
-    .subscribe(state => {
+    .subscribe((state, err) => {
+  console.log('Realtime status:', state, err || '');
       if (state === 'SUBSCRIBED') {
         message(
           $('connection'),
           'متصل — استقبال مباشر للطلبات مفعّل.',
           'good'
         );
-      } else if (state === 'CHANNEL_ERROR' || state === 'TIMED_OUT') {
+     } else if (
+  state === 'CHANNEL_ERROR' ||
+  state === 'TIMED_OUT' ||
+  state === 'CLOSED'
+) {
         message(
           $('connection'),
           'تعذر الاتصال المباشر. تحقق من إعداد Realtime ثم اضغط تحديث.',
