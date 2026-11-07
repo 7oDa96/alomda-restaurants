@@ -889,9 +889,13 @@ async function loadMenuItems() {
   message(box, `تم تحميل ${menuItems.length} صنفًا.`);
 }
 
+
 function renderMenuItems() {
+  const box = $('menuItems');
   const search = $('itemSearch').value.trim().toLowerCase();
   const category = $('itemCategory').value;
+
+  box.replaceChildren();
 
   const filtered = menuItems.filter(item =>
     String(item.name || '').toLowerCase().includes(search) &&
@@ -899,83 +903,80 @@ function renderMenuItems() {
   );
 
   if (!filtered.length) {
-    $('menuItems').innerHTML = '<p>لا توجد أصناف مطابقة.</p>';
+    box.textContent = 'لا توجد أصناف مطابقة.';
     return;
   }
 
-  $('menuItems').innerHTML = filtered.map(item => {
-    const available = item.is_available === true;
+  const groups = {};
 
-    return `
-      <div class="panel" style="margin:12px 0;padding:16px">
-        <h3>${safeText(item.name || '')}</h3>
-        <p class="muted">
-          القسم: ${safeText(item.category || 'بدون قسم')}<br>
-          السعر: ${money(item.price)}<br>
-          الحالة: ${available ? 'متاح' : 'غير متاح'}
-        </p>
-        <button
-          type="button"
-          data-menu-id="${safeText(item.id)}"
-          data-next="${available ? 'false' : 'true'}"
-          class="${available ? 'danger' : 'secondary'}"
-        >
-          ${available ? 'إيقاف الصنف' : 'إعادة الإتاحة'}
-        </button>
-      </div>
-    `;
-  }).join('');
+  filtered.forEach(item => {
+    const name = item.category || 'بدون قسم';
+    if (!groups[name]) groups[name] = [];
+    groups[name].push(item);
+  });
+
+  Object.entries(groups)
+    .sort((a, b) => a[0].localeCompare(b[0], 'ar'))
+    .forEach(([categoryName, items]) => {
+      const section = document.createElement('details');
+      section.className = 'menu-item';
+      section.open = Boolean(search);
+
+      const heading = document.createElement('summary');
+      heading.style.cursor = 'pointer';
+      heading.style.fontWeight = 'bold';
+      heading.style.padding = '12px';
+      heading.textContent =
+        `${categoryName} (${items.length} أصناف)`;
+
+      section.appendChild(heading);
+
+      items.forEach(item => {
+        const available = item.is_available === true;
+
+        const card = document.createElement('div');
+        card.className = 'panel';
+        card.style.margin = '12px 0';
+        card.style.padding = '16px';
+
+        if (item.image_url) {
+          const image = document.createElement('img');
+          image.src = item.image_url;
+          image.alt = item.name || 'صورة الصنف';
+          image.loading = 'lazy';
+          image.style.width = '130px';
+          image.style.height = '100px';
+          image.style.objectFit = 'cover';
+          image.style.borderRadius = '12px';
+          image.style.marginBottom = '10px';
+          card.appendChild(image);
+        }
+
+        const title = document.createElement('h3');
+        title.textContent = item.name || 'بدون اسم';
+
+        const price = document.createElement('p');
+        price.className = 'muted';
+        price.textContent = 'السعر: ' + money(item.price);
+
+        const status = document.createElement('span');
+        status.className = 'badge' + (available ? '' : ' off');
+        status.textContent = available ? 'متاح للبيع' : 'غير متاح';
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.menuId = String(item.id);
+        button.dataset.next = available ? 'false' : 'true';
+        button.className = available ? 'danger' : 'secondary';
+        button.textContent = available ? 'إيقاف الصنف' : 'إعادة الإتاحة';
+
+        card.append(title, price, status, button);
+        section.appendChild(card);
+      });
+
+      box.appendChild(section);
+    });
 }
-
-$('itemSearch').addEventListener('input', renderMenuItems);
-$('itemCategory').addEventListener('change', renderMenuItems);
-$('refreshMenu').addEventListener('click', loadMenuItems);
-
-$('menuItems').addEventListener('click', async event => {
-  const button = event.target.closest('button[data-menu-id]');
-  if (!button) return;
-
-  const id = Number(button.dataset.menuId);
-  const next = button.dataset.next === 'true';
-  const item = menuItems.find(row => Number(row.id) === id);
-
-  if (!item) return;
-
-  const action = next ? 'إعادة إتاحة' : 'إيقاف';
-
-  if (!confirm(`هل تريد ${action} الصنف "${item.name}"؟`)) return;
-
-  button.disabled = true;
-  message($('menuMessage'), 'جارٍ تحديث حالة الصنف...');
-
-  try {
-    const { data, error } = await client.rpc(
-      'set_menu_item_availability',
-      {
-        p_item_id: id,
-        p_is_available: next
-      }
-    );
-
-    if (error) throw error;
-    if (data !== true) throw new Error('لم يتأكد نجاح التحديث.');
-
-    item.is_available = next;
-    renderMenuItems();
-
-    message(
-      $('menuMessage'),
-      `تم ${action} الصنف "${item.name}" بنجاح.`
-    );
-  } catch (error) {
-    message(
-      $('menuMessage'),
-      'فشل تحديث الصنف: ' + error.message,
-      'error'
-    );
-    button.disabled = false;
-  }
-});
 
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
