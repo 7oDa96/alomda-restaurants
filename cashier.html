@@ -691,7 +691,9 @@ function itemSummary(items) {
               : ''
         );
 
-      return `${name}${weight ? ' — ' + weight : ''} × ${quantity}`;
+      const preparation = i.preparation || '';
+
+      return `${name}${weight ? ' — ' + weight : ''}${preparation ? ' — ' + preparation : ''} × ${quantity}`;
     }).join('\n');
   }
 
