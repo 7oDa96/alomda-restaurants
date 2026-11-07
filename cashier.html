@@ -986,51 +986,118 @@ $('loginForm').addEventListener('submit', async e => {
   message($('loginMsg'), 'جارٍ تسجيل الدخول...');
 
   let loginClient = null;
-  let loginError = null;
+  let loginUser = null;
   let restaurant = '';
 
+  let authSucceeded = false;
+  let inactiveFound = false;
+
   const projects = [
-  { db: alomdaDb, name: 'alomda' },
-  { db: fishDb, name: 'fish' }
-];
+    { db: alomdaDb, name: 'alomda' },
+    { db: fishDb, name: 'fish' }
+  ];
 
   for (const project of projects) {
-    const { error } = await project.db.auth.signInWithPassword({
-      email,
-      password
-    });
+    const { data: authData, error: authError } =
+      await project.db.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    if (!error) {
-      loginClient = project.db;
-      restaurant = project.name;
-      break;
+    if (authError) {
+      continue;
     }
 
-    loginError = error;
+    authSucceeded = true;
+
+    const { data: userData, error: userError } =
+      await project.db.auth.getUser();
+
+    if (userError || !userData.user) {
+      await project.db.auth.signOut();
+      continue;
+    }
+
+    const user = userData.user;
+
+    const { data: profile, error: profileError } =
+      await project.db
+        .from('staff_profiles')
+        .select('display_name, role, is_active')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+    if (profileError) {
+      await project.db.auth.signOut();
+
+      message(
+        $('loginMsg'),
+        'تعذر التحقق من حساب الموظف: ' + profileError.message,
+        'error'
+      );
+
+      return;
+    }
+
+    if (
+      !profile ||
+      !['cashier', 'manager'].includes(profile.role)
+    ) {
+      await project.db.auth.signOut();
+      continue;
+    }
+
+    if (profile.is_active !== true) {
+      inactiveFound = true;
+      await project.db.auth.signOut();
+      continue;
+    }
+
+    loginClient = project.db;
+    loginUser = user;
+    restaurant = project.name;
+
+    break;
   }
 
   if (!loginClient) {
-    message(
-      $('loginMsg'),
-      'تعذر تسجيل الدخول. تأكد من بيانات الحساب.',
-      'error'
-    );
+    if (inactiveFound) {
+      message(
+        $('loginMsg'),
+        'تم إيقاف هذا الحساب. يرجى مراجعة مدير المطعم.',
+        'error'
+      );
+    } else if (authSucceeded) {
+      message(
+        $('loginMsg'),
+        'هذا الحساب غير مضاف كموظف معتمد. راجع المدير.',
+        'error'
+      );
+    } else {
+      message(
+        $('loginMsg'),
+        'تعذر تسجيل الدخول. تأكد من بيانات الحساب.',
+        'error'
+      );
+    }
+
     return;
   }
 
   client = loginClient;
-activeRestaurant = restaurant;
+  activeRestaurant = restaurant;
 
-localStorage.setItem(RESTAURANT_DEVICE_KEY, restaurant);
+  localStorage.setItem(RESTAURANT_DEVICE_KEY, restaurant);
 
-  const { data } = await client.auth.getUser();
-  currentUser = data.user;
+  currentUser = loginUser;
 
   try {
     await showDashboard();
 
     $('restaurantName').textContent =
-      restaurant === 'fish' ? '🐟 أسماك العمدة' : '🍽️ مطعم العمدة';
+      restaurant === 'fish'
+        ? '🐟 أسماك العمدة'
+        : '🍽️ مطعم العمدة';
 
     $('restaurantSubtitle').textContent =
       'لوحة الكاشير وإدارة الطلبات';
@@ -1043,6 +1110,7 @@ localStorage.setItem(RESTAURANT_DEVICE_KEY, restaurant);
 
   } catch (err) {
     message($('loginMsg'), err.message, 'error');
+
     $('loginBox').classList.remove('hidden');
     $('dashboard').classList.add('hidden');
   }
