@@ -737,110 +737,185 @@ async function loadOrders() {
   }
 }
 
-    async function loadSalesReport() {
-      const start = $('reportStart').value, end = $('reportEnd').value;
-      if (!start || !end) { setText('reportMessage', 'اختَر تاريخ البداية والنهاية.'); return; }
-      if (start > end) { setText('reportMessage', 'تاريخ البداية لازم يكون قبل تاريخ النهاية أو مساويًا له.'); return; }
-      setText('reportMessage', 'جارٍ تحميل تقرير المبيعات...');
-      $('cashierReport').replaceChildren(); $('completedReportOrders').replaceChildren();
-      const { data: orders, error } = await db.from('orders')
-        .select('id, daily_order_number, order_date, created_at, customer_name, total, status, cashier_user_id')
-        .eq('status', 'completed')
-        .order('created_at', { ascending: false })
-        .limit(5000);
-      if (error) {
-        setText('reportMessage', 'تعذر تحميل التقرير: ' + error.message);
-        return;
-      }
-      const filtered = (orders || []).filter(order => {
-        const d = orderDate(order);
-        return d && d >= start && d <= end;
-      });
-      const cashierIds = [
-  ...new Set(
-    filtered
-      .map(o => o.cashier_user_id)
-      .filter(Boolean)
-      .map(id => String(id).trim())
-  )
-];
+   
+async function loadSalesReport() {
+  const start = $('reportStart').value;
+  const end = $('reportEnd').value;
 
-const names = Object.create(null);
+  if (!start || !end) {
+    setText('reportMessage', 'اختَر تاريخ البداية والنهاية.');
+    return;
+  }
 
-if (cashierIds.length) {
-  const { data: profiles, error: profileError } = await db
-    .from('staff_profiles')
-    .select('user_id, display_name, role')
-    .in('user_id', cashierIds);
-
-  if (profileError) {
+  if (start > end) {
     setText(
       'reportMessage',
-      'تم تحميل الطلبات، لكن تعذر تحميل أسماء الكاشير: ' +
-      profileError.message
+      'تاريخ البداية لازم يكون قبل تاريخ النهاية أو مساويًا له.'
     );
     return;
   }
 
-  (profiles || []).forEach(profile => {
-    const id = String(profile.user_id || '').trim();
+  setText('reportMessage', 'جارٍ تحميل تقرير المبيعات...');
 
-    if (id) {
-      names[id] = String(profile.display_name || '').trim()
-        || 'كاشير بدون اسم';
-    }
-  });
+  $('cashierReport').replaceChildren();
+  $('completedReportOrders').replaceChildren();
 
-  console.log('معرّفات الكاشير في التقرير:', JSON.stringify(cashierIds, null, 2));
-  console.log('الأسماء التي تم تحميلها:', JSON.stringify(names, null, 2));
-}
-      const total = filtered.reduce((sum, o) => sum + Number(o.total || 0), 0);
-      setText('reportSales', money(total));
-      setText('reportCount', String(filtered.length));
-      setText('reportAverage', money(filtered.length ? total / filtered.length : 0));
+  try {
+    const result = await manageOrders({
+      action: 'report',
+      restaurant: $('cashierRestaurant').value
+    });
 
-      const grouped = {};
-      filtered.forEach(o => {
-        const key = o.cashier_user_id || 'unassigned';
-        if (!grouped[key]) grouped[key] = { name: key === 'unassigned' ? 'غير منسوب لكاشير' : (names[key] || ('كاشير ' + key.slice(0, 4))), count: 0, total: 0 };
-        grouped[key].count += 1;
-        grouped[key].total += Number(o.total || 0);
+    const orders = result.orders || [];
+    const profiles = result.cashierProfiles || [];
+
+    const filtered = orders.filter(order => {
+      const d = orderDate(order);
+      return d && d >= start && d <= end;
+    });
+
+    const cashierIds = [
+      ...new Set(
+        filtered
+          .map(o => o.cashier_user_id)
+          .filter(Boolean)
+          .map(id => String(id).trim())
+      )
+    ];
+
+    const names = Object.create(null);
+
+    profiles.forEach(profile => {
+      const id = String(profile.user_id || '').trim();
+
+      if (id) {
+        names[id] = String(profile.display_name || '').trim()
+          || 'كاشير بدون اسم';
+      }
+    });
+
+    const total = filtered.reduce(
+      (sum, o) => sum + Number(o.total || 0),
+      0
+    );
+
+    setText('reportSales', money(total));
+    setText('reportCount', String(filtered.length));
+    setText(
+      'reportAverage',
+      money(filtered.length ? total / filtered.length : 0)
+    );
+
+    const grouped = {};
+
+    filtered.forEach(o => {
+      const key = o.cashier_user_id || 'unassigned';
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          name: key === 'unassigned'
+            ? 'غير منسوب لكاشير'
+            : (names[key] || ('كاشير ' + String(key).slice(0, 4))),
+          count: 0,
+          total: 0
+        };
+      }
+
+      grouped[key].count += 1;
+      grouped[key].total += Number(o.total || 0);
+    });
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+
+    ['الكاشير', 'عدد الطلبات المكتملة', 'إجمالي المبيعات']
+      .forEach(t => {
+        const th = document.createElement('th');
+        th.textContent = t;
+        headerRow.appendChild(th);
       });
-      const table = document.createElement('table');
-      const thead = document.createElement('thead'), headerRow = document.createElement('tr');
-      ['الكاشير', 'عدد الطلبات المكتملة', 'إجمالي المبيعات'].forEach(t => { const th = document.createElement('th'); th.textContent = t; headerRow.appendChild(th); });
-      thead.appendChild(headerRow); table.appendChild(thead);
-      const tbody = document.createElement('tbody');
-      const groups = Object.values(grouped).sort((a, b) => b.total - a.total);
-      if (!groups.length) {
-        const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 3; td.textContent = 'لا توجد مبيعات مكتملة في الفترة المحددة.'; tr.appendChild(td); tbody.appendChild(tr);
-      } else {
-        groups.forEach(g => {
-          const tr = document.createElement('tr');
-          [g.name, String(g.count), money(g.total)].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
-          tbody.appendChild(tr);
-        });
-      }
-      table.appendChild(tbody); $('cashierReport').appendChild(table);
 
-      if (!filtered.length) {
-        $('completedReportOrders').textContent = 'لا توجد طلبات مكتملة في الفترة المحددة.';
-      } else {
-        filtered.forEach(o => {
-          const card = document.createElement('article'); card.className = 'order';
-          const info = [
-            'طلب رقم ' + (o.daily_order_number ?? o.id),
-            'التاريخ: ' + (orderDate(o) || 'غير محدد'),
-            'العميل: ' + (o.customer_name || 'غير مسجل'),
-            'الكاشير: ' + (o.cashier_user_id ? (names[o.cashier_user_id] || ('كاشير ' + o.cashier_user_id.slice(0, 4))) : 'غير منسوب لكاشير'),
-            'الإجمالي: ' + money(o.total)
-          ];
-          info.forEach((txt, i) => { const el = document.createElement(i === 0 ? 'h4' : 'p'); el.textContent = txt; card.appendChild(el); });
-          $('completedReportOrders').appendChild(card);
-        });
-      }
-      setText('reportMessage', `التقرير من ${start} إلى ${end}. تم احتساب ${filtered.length} طلبًا مكتملًا فقط.`);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+
+    const groups = Object.values(grouped)
+      .sort((a, b) => b.total - a.total);
+
+    if (!groups.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+
+      td.colSpan = 3;
+      td.textContent = 'لا توجد مبيعات مكتملة في الفترة المحددة.';
+
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    } else {
+      groups.forEach(g => {
+        const tr = document.createElement('tr');
+
+        [g.name, String(g.count), money(g.total)]
+          .forEach(v => {
+            const td = document.createElement('td');
+            td.textContent = v;
+            tr.appendChild(td);
+          });
+
+        tbody.appendChild(tr);
+      });
     }
+
+    table.appendChild(tbody);
+    $('cashierReport').appendChild(table);
+
+    if (!filtered.length) {
+      $('completedReportOrders').textContent =
+        'لا توجد طلبات مكتملة في الفترة المحددة.';
+    } else {
+      filtered.forEach(o => {
+        const card = document.createElement('article');
+        card.className = 'order';
+
+        const cashierId = String(o.cashier_user_id || '');
+
+        const info = [
+          'طلب رقم ' + (o.daily_order_number ?? o.id),
+          'التاريخ: ' + (orderDate(o) || 'غير محدد'),
+          'العميل: ' + (o.customer_name || 'غير مسجل'),
+          'الكاشير: ' + (
+            cashierId
+              ? (names[cashierId] || ('كاشير ' + cashierId.slice(0, 4)))
+              : 'غير منسوب لكاشير'
+          ),
+          'الإجمالي: ' + money(o.total)
+        ];
+
+        info.forEach((txt, i) => {
+          const el = document.createElement(i === 0 ? 'h4' : 'p');
+          el.textContent = txt;
+          card.appendChild(el);
+        });
+
+        $('completedReportOrders').appendChild(card);
+      });
+    }
+
+    setText(
+      'reportMessage',
+      `التقرير من ${start} إلى ${end}. تم احتساب ${filtered.length} طلبًا مكتملًا فقط.`
+    );
+
+  } catch (err) {
+    setText(
+      'reportMessage',
+      'تعذر تحميل التقرير: ' + (err.message || 'خطأ غير معروف')
+    );
+  }
+}
+
 
     function formatPrice(item) {
       if (item.min_price != null && item.max_price != null) return item.min_price + ' - ' + item.max_price + ' ريال';
