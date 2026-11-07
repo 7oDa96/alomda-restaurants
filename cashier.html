@@ -573,8 +573,46 @@ $('menuItems').addEventListener('click', async event => {
   }
 });
 
-  $('loginForm').addEventListener('submit',async e=>{e.preventDefault();const email=$('email').value.trim(),password=$('password').value;message($('loginMsg'),'جارٍ تسجيل الدخول...');const {error}=await client.auth.signInWithPassword({email,password});if(error){message($('loginMsg'),'تعذر تسجيل الدخول. تأكد من بيانات الحساب. ('+error.message+')','error');return}const {data}=await client.auth.getUser();currentUser=data.user;try{await showDashboard()}catch(err){message($('loginMsg'),err.message,'error');$('loginBox').classList.remove('hidden');$('dashboard').classList.add('hidden')}});
-$('filters').addEventListener('click',e=>{const b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('active',x===b));render()});
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const email = $('email').value.trim();
+  const password = $('password').value;
+
+  message($('loginMsg'), 'جارٍ تسجيل الدخول...');
+
+  const { error } = await client.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    message(
+      $('loginMsg'),
+      'تعذر تسجيل الدخول. تأكد من بيانات الحساب. (' + error.message + ')',
+      'error'
+    );
+    return;
+  }
+
+  const { data } = await client.auth.getUser();
+  currentUser = data.user;
+
+  try {
+    await showDashboard();
+
+    if (staffCheckTimer) {
+      clearInterval(staffCheckTimer);
+    }
+
+    staffCheckTimer = setInterval(checkStaffActivity, 30000);
+
+  } catch (err) {
+    message($('loginMsg'), err.message, 'error');
+    $('loginBox').classList.remove('hidden');
+    $('dashboard').classList.add('hidden');
+  }
+});$('filters').addEventListener('click',e=>{const b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('active',x===b));render()});
 $('todayView').addEventListener('click', async () => {
   viewMode = 'today';
 
