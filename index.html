@@ -1067,7 +1067,22 @@ function addToCart(item, selectedPrice = null, vegetable = null) {
   renderCart();
 }
 
+try {
+  const { data, error } = await supabase
+    .from("menu_items")
+    .select("id, name, category, price, min_price, max_price, is_available, image_url")
+    .eq("is_available", true)
+    .order("category")
+    .order("sort_order", { ascending: true })
+    .order("name");
 
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("لم يتم استلام بيانات المنيو.");
+  }
       const categories = [
         ...new Set(data.map(item => item.category).filter(Boolean))
       ];
@@ -1175,33 +1190,6 @@ minus.addEventListener("click", () => {
   updateCount();
 });
 
-
-plus.addEventListener("click", () => {
-  if (Number(item.id) === 92) {
-    openVegetableChoice(item);
-  } else {
-    addToCart(item);
-  }
-
-  updateCount();
-});
-
-minus.addEventListener("click", () => {
-  const current = cart.get(item.id);
-  if (!current) return;
-
-  if (current.quantity <= 1) {
-    cart.delete(item.id);
-  } else {
-    cart.set(item.id, {
-      ...current,
-      quantity: current.quantity - 1
-    });
-  }
-
-  renderCart();
-  updateCount();
-});
 
 controls.append(minus, count, plus);
 updateCount();
