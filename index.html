@@ -784,28 +784,34 @@ const cartCount = document.getElementById("cart-count");
       "sb_publishable__sT-DJTstMDdYx2eMi0A_g_AyLfj92n"
     );
 
-    function renderCart() {
+    
+function renderCart() {
   cartBox.replaceChildren();
   let total = 0;
 
   if (cart.size === 0) {
-    cartBox.textContent = "السلة فارغة حاليًا. اختار صنفًا من المنيو لإضافته.";
+    cartBox.textContent =
+      "السلة فارغة حاليًا. اختار صنفًا من المنيو لإضافته.";
   }
 
-  cart.forEach(({ item, quantity, selectedPrice }) => {
+  cart.forEach(({ item, quantity, selectedPrice, vegetable }, key) => {
     const row = document.createElement("div");
     row.className = "cart-row";
 
     const unitPrice = Number(
-      item.price != null ? item.price : item.min_price
+      item.price != null ? item.price : selectedPrice
     );
+
     const subtotal = Number((unitPrice * quantity).toFixed(2));
     total += subtotal;
 
     const details = document.createElement("span");
     details.className = "cart-details";
+
     details.textContent =
-      `${item.name} × ${quantity} — ${subtotal} ريال`;
+      `${item.name}` +
+      (vegetable ? ` (بال${vegetable})` : "") +
+      ` × ${quantity} — ${subtotal} ريال`;
 
     const controls = document.createElement("div");
     controls.className = "cart-controls";
@@ -814,16 +820,19 @@ const cartCount = document.getElementById("cart-count");
     minus.type = "button";
     minus.className = "quantity-button";
     minus.textContent = "−";
+
     minus.addEventListener("click", () => {
       if (quantity <= 1) {
-        cart.delete(item.id);
+        cart.delete(key);
       } else {
-        cart.set(item.id, {
+        cart.set(key, {
           item,
           quantity: quantity - 1,
-          selectedPrice
+          selectedPrice,
+          vegetable
         });
       }
+
       renderCart();
     });
 
@@ -834,13 +843,16 @@ const cartCount = document.getElementById("cart-count");
     plus.type = "button";
     plus.className = "quantity-button";
     plus.textContent = "+";
+
     plus.addEventListener("click", () => {
       if (quantity < 50) {
-        cart.set(item.id, {
+        cart.set(key, {
           item,
           quantity: quantity + 1,
-          selectedPrice
+          selectedPrice,
+          vegetable
         });
+
         renderCart();
       }
     });
@@ -849,8 +861,9 @@ const cartCount = document.getElementById("cart-count");
     remove.type = "button";
     remove.className = "remove-button";
     remove.textContent = "حذف";
+
     remove.addEventListener("click", () => {
-      cart.delete(item.id);
+      cart.delete(key);
       renderCart();
     });
 
@@ -859,26 +872,172 @@ const cartCount = document.getElementById("cart-count");
     cartBox.append(row);
   });
 
-  totalBox.textContent = `الإجمالي: ${Number(total.toFixed(2))} ريال`;
-     cartShortcut.style.display = cart.size > 0 ? "block" : "none";
-      cartCount.textContent = [...cart.values()].reduce(
-  (sum, entry) => sum + entry.quantity,
-  0
-);
+  totalBox.textContent =
+    `الإجمالي: ${Number(total.toFixed(2))} ريال`;
+
+  cartShortcut.style.display =
+    cart.size > 0 ? "block" : "none";
+
+  cartCount.textContent = [...cart.values()].reduce(
+    (sum, entry) => sum + entry.quantity,
+    0
+  );
+
   orderButton.disabled = cart.size === 0;
 }
-    function addToCart(item, selectedPrice = null) {
-  const existing = cart.get(item.id);
+
+
+function openVegetableChoice(item, onAdded = null) {
+  const vegetables = [
+    "بطاطس",
+    "بسلة",
+    "فاصوليا",
+    "بامية"
+  ];
+
+  const overlay = document.createElement("div");
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    padding: 20px;
+  `;
+
+  const box = document.createElement("div");
+  box.style.cssText = `
+    background: white;
+    color: #222;
+    padding: 24px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+  `;
+
+  const title = document.createElement("h3");
+  title.textContent = "اختار الخضار لطاجن اللحم";
+
+  const options = document.createElement("div");
+  options.style.cssText = `
+    display: grid;
+    gap: 10px;
+    margin: 20px 0;
+  `;
+
+  let selectedVegetable = null;
+
+  vegetables.forEach(vegetable => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = vegetable;
+
+    button.style.cssText = `
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      background: white;
+      color: #222;
+      cursor: pointer;
+      font-size: 16px;
+    `;
+
+    button.addEventListener("click", () => {
+      selectedVegetable = vegetable;
+
+      options.querySelectorAll("button").forEach(btn => {
+        btn.style.background = "#fff";
+        btn.style.borderColor = "#ccc";
+      });
+
+      button.style.background = "#e2f5ed";
+      button.style.borderColor = "#23865c";
+    });
+
+    options.append(button);
+  });
+
+  const confirm = document.createElement("button");
+  confirm.type = "button";
+  confirm.textContent = "إضافة للسلة";
+
+  confirm.style.cssText = `
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: #23865c;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  `;
+
+  confirm.addEventListener("click", () => {
+    if (!selectedVegetable) {
+      alert("من فضلك اختار نوع الخضار أولاً.");
+      return;
+    }
+
+    addToCart(item, null, selectedVegetable);
+
+if (typeof onAdded === "function") {
+  onAdded();
+}
+
+overlay.remove();
+  });
+
+  const cancel = document.createElement("button");
+  cancel.type = "button";
+  cancel.textContent = "إلغاء";
+
+  cancel.style.cssText = `
+    margin-top: 10px;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    color: #555;
+    cursor: pointer;
+  `;
+
+  cancel.addEventListener("click", () => {
+    overlay.remove();
+  });
+
+  box.append(title, options, confirm, cancel);
+  overlay.append(box);
+  document.body.append(overlay);
+}
+
+function addToCart(item, selectedPrice = null, vegetable = null) {
+  const isTajin = Number(item.id) === 92;
+
+  if (isTajin && ![
+    "بطاطس",
+    "بسلة",
+    "فاصوليا",
+    "بامية"
+  ].includes(vegetable)) {
+    orderMessage.textContent = "من فضلك اختار نوع الخضار.";
+    return;
+  }
+
+  const key = `${item.id}:${vegetable || ""}`;
+  const existing = cart.get(key);
 
   if (existing && existing.quantity >= 50) {
-    orderMessage.textContent = "الحد الأقصى للصنف الواحد هو 50.";
+    orderMessage.textContent =
+      "الحد الأقصى للصنف الواحد هو 50.";
     return;
   }
 
   const price =
     item.price != null
       ? Number(item.price)
-      : Number(item.min_price);
+      : Number(selectedPrice ?? item.min_price);
 
   if (
     !Number.isFinite(price) ||
@@ -888,6 +1047,7 @@ const cartCount = document.getElementById("cart-count");
       (
         item.min_price == null ||
         item.max_price == null ||
+        price < Number(item.min_price) ||
         price > Number(item.max_price)
       )
     )
@@ -896,32 +1056,17 @@ const cartCount = document.getElementById("cart-count");
     return;
   }
 
-  cart.set(item.id, {
+  cart.set(key, {
     item,
     quantity: existing ? existing.quantity + 1 : 1,
-    selectedPrice: price
+    selectedPrice: price,
+    vegetable
   });
 
   orderMessage.textContent = "";
   renderCart();
 }
-    try {
-    message.textContent = "جاري تحميل المنيو...";
 
-      const { data, error } = await supabase
-        .from("menu_items")
-        .select("id, name, category, price, min_price, max_price, is_available, image_url")
-        .eq("is_available", true)
-        .order("category")
-.order("sort_order", { ascending: true })
-.order("name");
-
-      if (error) throw error;
-
-      if (!data || data.length === 0) {
-        message.textContent = "المنيو غير متاح حاليًا.";
-        return;
-      }
 
       const categories = [
         ...new Set(data.map(item => item.category).filter(Boolean))
@@ -983,15 +1128,61 @@ plus.type = "button";
 plus.className = "quantity-button";
 plus.textContent = "+";
 
+
 function updateCount() {
-  const current = cart.get(item.id);
-  count.textContent = String(current ? current.quantity : 0);
-  minus.disabled = !current;
-  plus.disabled = Boolean(current && current.quantity >= 50);
+  const entries = [...cart.entries()].filter(
+    ([key, entry]) => Number(entry.item.id) === Number(item.id)
+  );
+
+  const quantity = entries.reduce(
+    (sum, [, entry]) => sum + entry.quantity,
+    0
+  );
+
+  count.textContent = String(quantity);
+  minus.disabled = quantity === 0;
+  plus.disabled = quantity >= 50;
 }
 
 plus.addEventListener("click", () => {
-  addToCart(item);
+  if (Number(item.id) === 92) {
+    openVegetableChoice(item, updateCount);
+  } else {
+    addToCart(item);
+    updateCount();
+  }
+});
+
+minus.addEventListener("click", () => {
+  const entries = [...cart.entries()].filter(
+    ([key, entry]) => Number(entry.item.id) === Number(item.id)
+  );
+
+  if (entries.length === 0) return;
+
+  const [key, current] = entries[entries.length - 1];
+
+  if (current.quantity <= 1) {
+    cart.delete(key);
+  } else {
+    cart.set(key, {
+      ...current,
+      quantity: current.quantity - 1
+    });
+  }
+
+  renderCart();
+  updateCount();
+});
+
+
+plus.addEventListener("click", () => {
+  if (Number(item.id) === 92) {
+    openVegetableChoice(item);
+  } else {
+    addToCart(item);
+  }
+
   updateCount();
 });
 
@@ -1072,12 +1263,15 @@ if (firstButton) {
         return;
       }
 
-    const items = [...cart.values()].map(({ item, quantity }) => ({
+   
+const items = [...cart.values()].map(({ item, quantity, selectedPrice, vegetable }) => ({
   id: item.id,
   quantity,
   selected_price:
-    item.price != null ? null : Number(item.min_price)
+    item.price != null ? null : Number(selectedPrice),
+  vegetable: vegetable || null
 }));
+
 
 orderButton.disabled = true;
 orderMessage.textContent = "جارٍ إرسال الطلب...";
