@@ -560,6 +560,81 @@
   margin-bottom: 10px;
   background-color: #fff;
 }
+    
+.menu-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 650px;
+  margin: 18px auto 22px;
+  padding: 5px 15px;
+  background: #fffaf0;
+  border: 2px solid #e5bd63;
+  border-radius: 16px;
+  box-shadow: 0 5px 18px rgba(80, 35, 20, 0.08);
+  transition: .2s ease;
+  box-sizing: border-box;
+}
+
+.menu-search-box:focus-within {
+  border-color: #b5121b;
+  box-shadow: 0 0 0 4px rgba(181, 18, 27, .09);
+}
+
+.menu-search-box .search-icon {
+  font-size: 21px;
+  flex-shrink: 0;
+}
+
+.menu-search-box input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #292323;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.menu-search-box input::placeholder {
+  color: #9a8980;
+  font-weight: 400;
+}
+
+#clear-menu-search {
+  display: none;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #f8e5e2;
+  color: #b5121b;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+#clear-menu-search:hover {
+  background: #b5121b;
+  color: white;
+}
+
+@media (max-width: 600px) {
+  .menu-search-box {
+    margin: 14px auto 18px;
+    padding: 4px 12px;
+  }
+
+  .menu-search-box input {
+    font-size: 14px;
+  }
+}
+
   </style>
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
 </head>
@@ -650,6 +725,19 @@
             <p>تصفح الأصناف، اختار طلبك، وضيفه لسلة المشتريات.</p>
 
             <div id="menu-message" role="status" aria-live="polite">جاري تجهيز المنيو...</div>
+            <div class="menu-search-box">
+  <span class="search-icon">🔍</span>
+  <input
+    type="search"
+    id="menu-search"
+    placeholder="بتدور على أكلة معينة؟ ابحث هنا..."
+    aria-label="ابحث في أصناف المنيو"
+    autocomplete="off"
+  >
+  <button id="clear-menu-search" type="button" aria-label="مسح البحث">
+    ✕
+  </button>
+</div>
             <div class="menu-top-actions">
   <div id="menu-categories" aria-label="أقسام المنيو"></div>
   <button id="cart-shortcut" type="button" class="btn btn-red">
@@ -1136,6 +1224,8 @@ try {
 
       message.textContent =
         `أهلاً بيكم في منيو مطعم العمدة — ${data.length} صنف`;
+  const searchInput = document.getElementById("menu-search");
+const clearSearchButton = document.getElementById("clear-menu-search");
 
       function showCategory(category, selectedButton) {
         itemsBox.replaceChildren();
@@ -1144,9 +1234,19 @@ try {
           button.classList.toggle("active", button === selectedButton);
         });
 
-        const filtered = category === "الكل"
-          ? data
-          : data.filter(item => item.category === category);
+        const searchTerm = (searchInput?.value || "")
+  .trim()
+  .toLocaleLowerCase("ar");
+
+const filtered = searchTerm
+  ? data.filter(item =>
+      String(item.name || "")
+        .toLocaleLowerCase("ar")
+        .includes(searchTerm)
+    )
+  : category === "الكل"
+    ? data
+    : data.filter(item => item.category === category);
 
         filtered.forEach(item => {
           const card = document.createElement("article");
@@ -1260,6 +1360,39 @@ itemsBox.append(card);
 
         categoriesBox.append(button);
       });
+
+searchInput?.addEventListener("input", () => {
+  const hasSearch = searchInput.value.trim().length > 0;
+
+  clearSearchButton.style.display = hasSearch ? "block" : "none";
+
+  if (hasSearch) {
+    categoriesBox.querySelectorAll("button").forEach(button => {
+      button.classList.remove("active");
+    });
+
+    showCategory("الكل", null);
+  } else {
+    const firstButton = categoriesBox.querySelector("button");
+
+    if (firstButton) {
+      showCategory(firstButton.textContent, firstButton);
+    }
+  }
+});
+
+clearSearchButton?.addEventListener("click", () => {
+  searchInput.value = "";
+  clearSearchButton.style.display = "none";
+
+  const firstButton = categoriesBox.querySelector("button");
+
+  if (firstButton) {
+    showCategory(firstButton.textContent, firstButton);
+  }
+
+  searchInput.focus();
+});
 
       const firstButton = categoriesBox.querySelector("button");
 
