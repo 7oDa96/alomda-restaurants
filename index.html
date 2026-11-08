@@ -887,6 +887,7 @@ function renderCart() {
 }
 
 
+
 function openVegetableChoice(item, onAdded = null) {
   const vegetables = [
     "بطاطس",
@@ -899,33 +900,68 @@ function openVegetableChoice(item, onAdded = null) {
   overlay.style.cssText = `
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.65);
+    background: rgba(20, 12, 12, 0.78);
+    backdrop-filter: blur(5px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 99999;
-    padding: 20px;
+    padding: 18px;
+    animation: tajinFadeIn .2s ease;
   `;
 
   const box = document.createElement("div");
   box.style.cssText = `
-    background: white;
-    color: #222;
-    padding: 24px;
-    border-radius: 16px;
+    background: linear-gradient(145deg, #fffdf8, #fff5e7);
+    color: #292323;
+    padding: 25px 20px 20px;
+    border: 2px solid #e5bd63;
+    border-radius: 22px;
     width: 100%;
-    max-width: 350px;
+    max-width: 370px;
     text-align: center;
+    box-shadow: 0 18px 55px rgba(0,0,0,.35);
+    animation: tajinPop .25s ease;
+    direction: rtl;
   `;
 
   const title = document.createElement("h3");
   title.textContent = "اختار الخضار لطاجن اللحم";
+  title.style.cssText = `
+    margin: 0 0 9px;
+    color: #a70f19;
+    font-size: 21px;
+    font-weight: 900;
+  `;
+
+  const subtitle = document.createElement("p");
+  subtitle.textContent = "اختار الإضافة المفضلة ليك";
+  subtitle.style.cssText = `
+    margin: 0;
+    color: #76665a;
+    font-size: 14px;
+  `;
+
+  const price = document.createElement("div");
+  price.textContent = "30 ريال";
+  price.style.cssText = `
+    display: inline-block;
+    margin-top: 13px;
+    padding: 7px 20px;
+    border-radius: 30px;
+    background: #fff0c9;
+    border: 1px solid #e5bd63;
+    color: #8b5b12;
+    font-size: 16px;
+    font-weight: 900;
+  `;
 
   const options = document.createElement("div");
   options.style.cssText = `
     display: grid;
-    gap: 10px;
-    margin: 20px 0;
+    grid-template-columns: 1fr 1fr;
+    gap: 11px;
+    margin: 23px 0;
   `;
 
   let selectedVegetable = null;
@@ -936,13 +972,17 @@ function openVegetableChoice(item, onAdded = null) {
     button.textContent = vegetable;
 
     button.style.cssText = `
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      background: white;
-      color: #222;
+      min-height: 58px;
+      padding: 12px 8px;
+      border: 2px solid #eadfce;
+      border-radius: 14px;
+      background: #fff;
+      color: #44352e;
       cursor: pointer;
       font-size: 16px;
+      font-weight: 800;
+      transition: .18s ease;
+      box-shadow: 0 3px 8px rgba(80,40,20,.05);
     `;
 
     button.addEventListener("click", () => {
@@ -950,11 +990,15 @@ function openVegetableChoice(item, onAdded = null) {
 
       options.querySelectorAll("button").forEach(btn => {
         btn.style.background = "#fff";
-        btn.style.borderColor = "#ccc";
+        btn.style.borderColor = "#eadfce";
+        btn.style.color = "#44352e";
+        btn.style.boxShadow = "0 3px 8px rgba(80,40,20,.05)";
       });
 
-      button.style.background = "#e2f5ed";
-      button.style.borderColor = "#23865c";
+      button.style.background = "#fff0e9";
+      button.style.borderColor = "#b5121b";
+      button.style.color = "#a30e18";
+      button.style.boxShadow = "0 4px 13px rgba(181,18,27,.13)";
     });
 
     options.append(button);
@@ -963,16 +1007,18 @@ function openVegetableChoice(item, onAdded = null) {
   const confirm = document.createElement("button");
   confirm.type = "button";
   confirm.textContent = "إضافة للسلة";
-
   confirm.style.cssText = `
     width: 100%;
-    padding: 13px;
+    padding: 15px;
     border: none;
-    border-radius: 10px;
-    background: #23865c;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #c51b25, #950b14);
     color: white;
-    font-size: 16px;
+    font-size: 17px;
+    font-weight: 900;
     cursor: pointer;
+    box-shadow: 0 6px 15px rgba(181,18,27,.25);
+    transition: .2s ease;
   `;
 
   confirm.addEventListener("click", () => {
@@ -983,23 +1029,24 @@ function openVegetableChoice(item, onAdded = null) {
 
     addToCart(item, null, selectedVegetable);
 
-if (typeof onAdded === "function") {
-  onAdded();
-}
+    if (typeof onAdded === "function") {
+      onAdded();
+    }
 
-overlay.remove();
+    overlay.remove();
   });
 
   const cancel = document.createElement("button");
   cancel.type = "button";
   cancel.textContent = "إلغاء";
-
   cancel.style.cssText = `
-    margin-top: 10px;
-    padding: 10px;
+    margin-top: 12px;
+    padding: 9px 20px;
     border: none;
     background: transparent;
-    color: #555;
+    color: #76665a;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
   `;
 
@@ -1007,7 +1054,7 @@ overlay.remove();
     overlay.remove();
   });
 
-  box.append(title, options, confirm, cancel);
+  box.append(title, subtitle, price, options, confirm, cancel);
   overlay.append(box);
   document.body.append(overlay);
 }
