@@ -1105,7 +1105,7 @@ async function loadMenuItems() {
 
   const { data, error } = await client
     .from('menu_items')
-    .select('id,name,category,price,is_available')
+    .select('id,name,category,price,is_available,image_url')
     .order('category')
     .order('name');
 
@@ -1223,6 +1223,15 @@ function renderMenuItems() {
       box.appendChild(section);
     });
 }
+  
+$('itemSearch').addEventListener('input', () => {
+  renderMenuItems();
+});
+
+$('itemCategory').addEventListener('change', () => {
+  renderMenuItems();
+});
+
 $('menuItems').addEventListener('click', async e => {
   const button = e.target.closest('button[data-menu-id]');
   if (!button) return;
