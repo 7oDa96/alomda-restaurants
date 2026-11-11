@@ -1577,6 +1577,7 @@ $('itemImage').addEventListener('change', () => {
 document.querySelectorAll('[data-restaurant]').forEach(button => {
   button.addEventListener('click', async () => {
     const restaurant = button.dataset.restaurant;
+    console.log('قيمة زر المطعم:', restaurant);
 
     $('cashierRestaurant').value = restaurant;
 
