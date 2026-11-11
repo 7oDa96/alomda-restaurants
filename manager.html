@@ -1205,6 +1205,65 @@ async function saveFishPreparation(item, preparationName) {
     alert(err.message || 'حدث خطأ أثناء تحديث التسوية.');
   }
 }
+    // حفظ وزن وسعر حلويات شرقي
+async function saveSweetWeight(item, weightName, weightPrice) {
+  try {
+    const result = await manageMenu({
+      action: 'save_weight_option',
+      restaurant: 'sweets',
+      id: item.id,
+      weight_name: weightName,
+      weight_price: Number(weightPrice)
+    });
+
+    if (!result.success) {
+      throw new Error(result.error || 'تعذر حفظ الوزن.');
+    }
+
+    const index = menuData.findIndex(
+      x => String(x.id) === String(item.id)
+    );
+
+    if (index !== -1) {
+      menuData[index] = result.item;
+    }
+
+    renderMenu();
+    setText('menuMessage', 'تم حفظ الوزن والسعر بنجاح.');
+  } catch (err) {
+    alert(err.message || 'حدث خطأ أثناء حفظ الوزن.');
+  }
+}
+
+// إيقاف أو إعادة تفعيل وزن
+async function toggleSweetWeight(item, weight) {
+  try {
+    const result = await manageMenu({
+      action: 'toggle_weight_option',
+      restaurant: 'sweets',
+      id: item.id,
+      weight_name: weight.name,
+      is_active: !weight.is_active
+    });
+
+    if (!result.success) {
+      throw new Error(result.error || 'تعذر تحديث الوزن.');
+    }
+
+    const index = menuData.findIndex(
+      x => String(x.id) === String(item.id)
+    );
+
+    if (index !== -1) {
+      menuData[index] = result.item;
+    }
+
+    renderMenu();
+    setText('menuMessage', 'تم تحديث حالة الوزن بنجاح.');
+  } catch (err) {
+    alert(err.message || 'حدث خطأ أثناء تحديث الوزن.');
+  }
+}
   function renderMenu() {
   const box = $('menuItems');
   box.replaceChildren();
@@ -1383,7 +1442,102 @@ addPreparationButton.style.marginTop = '8px';
   preparationBox.append(preparationInput, addPreparationButton);
   card.appendChild(preparationBox);
 }
+// إدارة أوزان حلويات شرقي فقط
+if (
+  $('cashierRestaurant').value === 'sweets' &&
+  item.name === 'حلويات شرقي'
+) {
+  const weightBox = document.createElement('div');
+  weightBox.style.marginTop = '12px';
+  weightBox.style.padding = '12px';
+  weightBox.style.border = '1px solid #ddd';
+  weightBox.style.borderRadius = '12px';
+  weightBox.style.background = '#fffaf3';
 
+  const weightTitle = document.createElement('h4');
+  weightTitle.textContent = 'إدارة الأوزان والأسعار';
+  weightBox.appendChild(weightTitle);
+
+  const weights = Array.isArray(item.weight_options)
+    ? item.weight_options
+    : [];
+
+  if (weights.length === 0) {
+    const empty = document.createElement('p');
+    empty.textContent = 'لا توجد أوزان مضافة حتى الآن.';
+    weightBox.appendChild(empty);
+  }
+
+  weights.forEach(weight => {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    row.style.justifyContent = 'space-between';
+    row.style.gap = '10px';
+    row.style.marginBottom = '8px';
+
+    const info = document.createElement('span');
+    info.textContent =
+      weight.name + ' — ' +
+      Number(weight.price).toFixed(2) + ' ريال' +
+      (weight.is_active ? ' (مفعّل)' : ' (متوقف)');
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.textContent = weight.is_active
+      ? 'إيقاف'
+      : 'إعادة التفعيل';
+
+    toggle.className = weight.is_active ? 'danger' : 'success';
+
+    toggle.addEventListener('click', () => {
+      toggleSweetWeight(item, weight);
+    });
+
+    row.append(info, toggle);
+    weightBox.appendChild(row);
+  });
+
+  const weightInput = document.createElement('input');
+  weightInput.type = 'text';
+  weightInput.placeholder = 'اسم الوزن، مثال: ربع كيلو';
+  weightInput.maxLength = 50;
+
+  const priceInput = document.createElement('input');
+  priceInput.type = 'number';
+  priceInput.placeholder = 'السعر بالريال';
+  priceInput.min = '0.01';
+  priceInput.step = '0.01';
+
+  const addWeightButton = document.createElement('button');
+  addWeightButton.type = 'button';
+  addWeightButton.textContent = 'إضافة الوزن والسعر';
+  addWeightButton.style.display = 'inline-block';
+  addWeightButton.style.backgroundColor = '#198754';
+  addWeightButton.style.color = '#ffffff';
+  addWeightButton.style.padding = '10px 16px';
+  addWeightButton.style.marginTop = '8px';
+
+  addWeightButton.addEventListener('click', () => {
+    const name = weightInput.value.trim();
+    const price = Number(priceInput.value);
+
+    if (!name) {
+      alert('اكتب اسم الوزن أولاً.');
+      return;
+    }
+
+    if (!Number.isFinite(price) || price <= 0) {
+      alert('اكتب سعرًا صحيحًا أكبر من صفر.');
+      return;
+    }
+
+    saveSweetWeight(item, name, price);
+  });
+
+  weightBox.append(weightInput, priceInput, addWeightButton);
+  card.appendChild(weightBox);
+}
 section.appendChild(card);
       });
 
