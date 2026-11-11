@@ -379,6 +379,12 @@ tr:hover td {
       <strong>أسماك العمدة</strong>
       <small>إدارة الأسماك والطلبات</small>
     </button>
+
+    <button type="button" class="restaurant-card" data-restaurant="sweets">
+  <span class="restaurant-icon">🍰</span>
+  <strong>حلويات العمدة</strong>
+  <small>إدارة منيو الحلويات فقط</small>
+</button>
   </div>
 </section>
 
@@ -1573,18 +1579,33 @@ document.querySelectorAll('[data-restaurant]').forEach(button => {
 
     $('cashierRestaurant').value = restaurant;
 
-    $('currentRestaurantName').textContent =
-      restaurant === 'fish'
-        ? 'أسماك العمدة'
-        : 'مطعم العمدة';
+   $('currentRestaurantName').textContent =
+  restaurant === 'fish'
+    ? 'أسماك العمدة'
+    : restaurant === 'sweets'
+      ? 'حلويات العمدة'
+      : 'مطعم العمدة';
 
     $('restaurantChooser').classList.add('hidden');
     $('restaurantWorkspace').classList.remove('hidden');
 
-    ['menuPanel', 'ordersPanel', 'reportsPanel', 'cashiersPanel']
-      .forEach(id => {
-        $(id).classList.toggle('hidden', id !== 'menuPanel');
-      });
+    const isSweets = restaurant === 'sweets';
+
+['menuPanel', 'ordersPanel', 'reportsPanel', 'cashiersPanel']
+  .forEach(id => {
+    const panel = $(id);
+    panel.classList.toggle(
+      'hidden',
+      id !== 'menuPanel' || (isSweets && id !== 'menuPanel')
+    );
+  });
+
+document.querySelectorAll('.tabs button').forEach(button => {
+  button.classList.toggle(
+    'hidden',
+    isSweets && button.dataset.tab !== 'menuPanel'
+  );
+});
 
     await loadMenu();
   });
