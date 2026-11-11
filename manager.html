@@ -1470,15 +1470,17 @@ if (
 
   weights.forEach(weight => {
     const row = document.createElement('div');
-    row.style.display = 'flex';
-    row.style.alignItems = 'center';
-    row.style.justifyContent = 'space-between';
-    row.style.gap = '10px';
-    row.style.marginBottom = '8px';
-    row.style.backgroundColor = '#ffffff';
-row.style.padding = '8px';
+row.style.display = 'flex';
+row.style.alignItems = 'center';
+row.style.justifyContent = 'space-between';
+row.style.gap = '12px';
+row.style.marginBottom = '10px';
+row.style.padding = '10px 12px';
+row.style.background = '#fff4e5';
+row.style.border = '1px solid #ead5b8';
 row.style.borderRadius = '10px';
-row.style.border = '1px solid #eadfce';
+row.style.width = '100%';
+row.style.boxSizing = 'border-box';
 
     const info = document.createElement('span');
 info.textContent =
@@ -1486,21 +1488,23 @@ info.textContent =
   Number(weight.price).toFixed(2) + ' ريال' +
   (weight.is_active ? ' (مفعّل)' : ' (متوقف)');
 
-info.style.color = '#292524';
+info.style.color = '#392719';
+info.style.fontSize = '15px';
 info.style.fontWeight = '700';
-info.style.backgroundColor = '#ffffff';
-info.style.padding = '8px 12px';
-info.style.borderRadius = '8px';
 info.style.flex = '1';
+info.style.minWidth = '0';
 
     const toggle = document.createElement('button');
     toggle.type = 'button';
-    toggle.textContent = weight.is_active
-      ? 'إيقاف'
-      : 'إعادة التفعيل';
 
     toggle.className = weight.is_active ? 'danger' : 'success';
-
+toggle.textContent = weight.is_active ? 'إيقاف' : 'تفعيل';
+toggle.style.width = 'auto';
+toggle.style.minWidth = '65px';
+toggle.style.padding = '6px 10px';
+toggle.style.fontSize = '12px';
+toggle.style.borderRadius = '7px';
+toggle.style.flexShrink = '0';
     toggle.addEventListener('click', () => {
       toggleSweetWeight(item, weight);
     });
