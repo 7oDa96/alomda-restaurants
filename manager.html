@@ -1236,18 +1236,25 @@ async function saveSweetWeight(item, weightName, weightPrice) {
 }
 
 // إيقاف أو إعادة تفعيل وزن
-async function toggleSweetWeight(item, weight) {
+async function updateSweetWeightPrice(item, weight, newPrice) {
+  const price = Number(newPrice);
+
+  if (!Number.isFinite(price) || price <= 0) {
+    alert('اكتب سعرًا صحيحًا أكبر من صفر.');
+    return;
+  }
+
   try {
     const result = await manageMenu({
-      action: 'toggle_weight_option',
+      action: 'update_weight_price',
       restaurant: 'sweets',
       id: item.id,
       weight_name: weight.name,
-      is_active: !weight.is_active
+      weight_price: price
     });
 
     if (!result.success) {
-      throw new Error(result.error || 'تعذر تحديث الوزن.');
+      throw new Error(result.error || 'تعذر تحديث سعر الوزن.');
     }
 
     const index = menuData.findIndex(
@@ -1259,9 +1266,9 @@ async function toggleSweetWeight(item, weight) {
     }
 
     renderMenu();
-    setText('menuMessage', 'تم تحديث حالة الوزن بنجاح.');
+    setText('menuMessage', 'تم تحديث سعر الوزن بنجاح.');
   } catch (err) {
-    alert(err.message || 'حدث خطأ أثناء تحديث الوزن.');
+    alert(err.message || 'حدث خطأ أثناء تحديث السعر.');
   }
 }
   function renderMenu() {
@@ -1468,51 +1475,73 @@ if (
     weightBox.appendChild(empty);
   }
 
-  weights.forEach(weight => {
-    const row = document.createElement('div');
-row.style.display = 'flex';
-row.style.alignItems = 'center';
-row.style.justifyContent = 'space-between';
-row.style.gap = '12px';
-row.style.marginBottom = '10px';
-row.style.padding = '10px 12px';
-row.style.background = '#fff4e5';
-row.style.border = '1px solid #ead5b8';
-row.style.borderRadius = '10px';
-row.style.width = '100%';
-row.style.boxSizing = 'border-box';
+ weights.forEach(weight => {
+  const row = document.createElement('div');
 
-    const info = document.createElement('span');
-info.textContent =
-  weight.name + ' — ' +
-  Number(weight.price).toFixed(2) + ' ريال' +
-  (weight.is_active ? ' (مفعّل)' : ' (متوقف)');
+  row.style.display = 'flex';
+  row.style.alignItems = 'center';
+  row.style.flexWrap = 'wrap';
+  row.style.gap = '10px';
+  row.style.marginBottom = '10px';
+  row.style.padding = '12px';
+  row.style.background = '#fff4e5';
+  row.style.border = '1px solid #ead5b8';
+  row.style.borderRadius = '10px';
+  row.style.width = '100%';
+  row.style.boxSizing = 'border-box';
 
-info.style.color = '#392719';
-info.style.fontSize = '15px';
-info.style.fontWeight = '700';
-info.style.flex = '1';
-info.style.minWidth = '0';
+  const info = document.createElement('span');
 
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
+  info.textContent =
+    weight.name +
+    (weight.is_active ? ' (مفعّل)' : ' (متوقف)');
 
-    toggle.className = weight.is_active ? 'danger' : 'success';
-toggle.textContent = weight.is_active ? 'إيقاف' : 'تفعيل';
-toggle.style.width = 'auto';
-toggle.style.minWidth = '65px';
-toggle.style.padding = '6px 10px';
-toggle.style.fontSize = '12px';
-toggle.style.borderRadius = '7px';
-toggle.style.flexShrink = '0';
-    toggle.addEventListener('click', () => {
-      toggleSweetWeight(item, weight);
-    });
+  info.style.color = '#392719';
+  info.style.fontSize = '15px';
+  info.style.fontWeight = '700';
+  info.style.flex = '1';
+  info.style.minWidth = '100px';
 
-    row.append(info, toggle);
-    weightBox.appendChild(row);
+  const priceInput = document.createElement('input');
+
+  priceInput.type = 'number';
+  priceInput.min = '0.01';
+  priceInput.step = '0.01';
+  priceInput.value = Number(weight.price).toFixed(2);
+  priceInput.style.width = '110px';
+  priceInput.style.padding = '8px';
+  priceInput.style.border = '1px solid #d6b98f';
+  priceInput.style.borderRadius = '7px';
+  priceInput.style.boxSizing = 'border-box';
+
+  const save = document.createElement('button');
+
+  save.type = 'button';
+  save.textContent = 'حفظ السعر';
+  save.className = 'success';
+  save.style.width = 'auto';
+  save.style.padding = '7px 12px';
+
+  save.addEventListener('click', () => {
+    updateSweetWeightPrice(item, weight, priceInput.value);
   });
 
+  const toggle = document.createElement('button');
+
+  toggle.type = 'button';
+  toggle.className = weight.is_active ? 'danger' : 'success';
+  toggle.textContent = weight.is_active ? 'إيقاف' : 'تفعيل';
+  toggle.style.width = 'auto';
+  toggle.style.minWidth = '65px';
+  toggle.style.padding = '7px 10px';
+
+  toggle.addEventListener('click', () => {
+    toggleSweetWeight(item, weight);
+  });
+
+  row.append(info, priceInput, save, toggle);
+  weightBox.appendChild(row);
+});
   const weightInput = document.createElement('input');
   weightInput.type = 'text';
   weightInput.placeholder = 'اسم الوزن، مثال: ربع كيلو';
